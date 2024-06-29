@@ -1,0 +1,19 @@
+{
+  "name": "schemock",
+  "scripts": {
+    "dev": "bun run --hot src/index.ts",
+    "build": "bun build ./src/index.ts --outdir ./dist --minify --splitting --sourcemap --target bun",
+    "start": "bun run dist/index.js"
+  },
+  "dependencies": {
+    "@hono/eslint-config": "^0.0.6",
+    "@hono/swagger-ui": "^0.3.0",
+    "@hono/zod-validator": "^0.2.2",
+    "hono": "^4.4.9",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@faker-js/faker": "^8.4.1",
+    "@types/bun": "latest"
+  }
+}
