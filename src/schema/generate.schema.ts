@@ -1,28 +1,65 @@
-import { z, type ZodTypeAny } from "zod";
+import { z } from "@hono/zod-openapi";
+import type { ZodTypeAny } from "zod";
 import { FakerMethods } from "../constant";
 
-// Define the base schema using Zod
-
 const BaseSchema: ZodTypeAny = z.lazy(() =>
-  z.record(
-    z.string(),
-    z.union([
-      FakerMethods,
-      z.lazy(() => BaseSchema).optional(),
-      z.object({
-        items: z.lazy(() => BaseSchema).optional(),
-        count: z.number().max(10).optional(),
-      }),
-    ]),
-  ),
+  z
+    .record(
+      z.string(),
+      z.union([
+        FakerMethods.openapi({ type: "string" }),
+        z
+          .lazy(() => BaseSchema)
+          .optional()
+          .openapi({ type: "object" }),
+        z
+          .object({
+            items: z
+              .lazy(() => BaseSchema)
+              .optional()
+              .openapi({
+                type: "object",
+              }),
+            count: z.number().max(10).optional().openapi({
+              type: "number",
+            }),
+          })
+          .openapi({ type: "object" }),
+      ]),
+    )
+    .openapi({ type: "object" }),
 );
 
-// Define the main schema
-export const GenerateBodySchemaRequest = z.object({
-  schema: BaseSchema,
-  count: z.number().max(10).optional(),
-  locale: z.string().optional().default("en"),
-});
+export const GenerateBodySchemaRequest = z
+  .object({
+    schema: BaseSchema.openapi({
+      type: "object",
+    }),
+    count: z.number().max(10).optional().openapi({
+      type: "number",
+    }),
+    locale: z.string().optional().default("en").openapi({
+      type: "string",
+    }),
+  })
+  .openapi({
+    description: "Schema for generating fake data",
+    type: "object",
+    example: {
+      schema: {
+        user: {
+          name: "person.firstName",
+          email: "internet.email",
+          address: {
+            street: "location.streetAddress",
+            city: "location.city",
+            country: "location.country",
+          },
+        },
+      },
+      count: 1,
+      locale: "en",
+    },
+  });
 
-// Define the type for the schema
 export type GenerateBodySchema = z.infer<typeof GenerateBodySchemaRequest>;
