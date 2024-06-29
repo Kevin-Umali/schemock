@@ -26,7 +26,7 @@ Generates a single object with name and email properties.
 
 This example demonstrates how to use the `locale` property to specify the locale for generating data. In this case, the locale is set to French (`fr`).
 
-````json
+```json
 {
   "schema": {
     "name": "person.firstName",
