@@ -13,8 +13,8 @@ const BaseSchema: ZodTypeAny = z.lazy(() =>
         items: z.lazy(() => BaseSchema).optional(),
         count: z.number().max(10).optional(),
       }),
-    ])
-  )
+    ]),
+  ),
 );
 
 // Define the main schema

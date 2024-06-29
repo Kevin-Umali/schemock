@@ -1,9 +1,10 @@
 {
   "name": "schemock",
   "scripts": {
-    "dev": "bun run --hot src/index.ts",
-    "build": "bun build ./src/index.ts --outdir ./dist --minify --splitting --sourcemap --target bun",
-    "start": "bun run dist/index.js"
+    "dev": "bunx run --hot --watch src/index.ts",
+    "build": "bunx build ./src/index.ts --outdir ./dist --minify --splitting --sourcemap --target bun",
+    "start": "bunx run dist/index.js",
+    "format": "bunx prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
     "@hono/eslint-config": "^0.0.6",
@@ -14,6 +15,7 @@
   },
   "devDependencies": {
     "@faker-js/faker": "^8.4.1",
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "prettier": "^3.3.2"
   }
 }

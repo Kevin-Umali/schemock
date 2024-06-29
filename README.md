@@ -35,6 +35,7 @@ This example demonstrates how to use the `locale` property to specify the locale
   "count": 1,
   "locale": "fr"
 }
+```
 
 ### Nested Example:
 

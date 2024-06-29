@@ -21,7 +21,7 @@ app
       exposeHeaders: ["Content-Length", "X-Kuma-Revision"],
       maxAge: 600,
       credentials: true,
-    })
+    }),
   )
   .use(
     timeout(
@@ -29,49 +29,46 @@ app
       () =>
         new HTTPException(408, {
           message: "Request Timeout after waiting 60 seconds. Please try again later.",
-        })
-    )
+        }),
+    ),
   )
-  .use(prettyJSON());
-
-app.route("/generate", generate);
-
-app.get(
-  "/ui",
-  swaggerUI({
-    url: "/doc",
-  })
-);
-
-app.notFound((c) => {
-  return c.json(
-    {
-      message: "Not Found",
-      availableRoutes: [
-        {
-          prefix: "/api/v1",
-          routes: [
-            {
-              prefix: "/generate",
-              routes: [
-                {
-                  method: "POST",
-                  path: "/schema",
-                  description: "Generate fake data based on a schema",
-                },
-              ],
-            },
-            {
-              method: "GET",
-              path: "/ui",
-              description: "Documentation of this api",
-            },
-          ],
-        },
-      ],
-    },
-    404
-  );
-});
+  .use(prettyJSON())
+  .get(
+    "/ui",
+    swaggerUI({
+      url: "/doc",
+    }),
+  )
+  .route("/generate", generate)
+  .notFound((c) => {
+    return c.json(
+      {
+        message: "Not Found",
+        availableRoutes: [
+          {
+            prefix: "/api/v1",
+            routes: [
+              {
+                prefix: "/generate",
+                routes: [
+                  {
+                    method: "POST",
+                    path: "/schema",
+                    description: "Generate fake data based on a schema",
+                  },
+                ],
+              },
+              {
+                method: "GET",
+                path: "/ui",
+                description: "Documentation of this api",
+              },
+            ],
+          },
+        ],
+      },
+      404,
+    );
+  });
 
 export default app;
