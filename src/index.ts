@@ -7,6 +7,8 @@ import { generate, generateCSVRoute, generateJSONRoute, generateSQLRoute, genera
 import { logger } from "hono/logger";
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { apiReference } from "@scalar/hono-api-reference";
+import { rateLimiter } from "hono-rate-limiter";
+import { isIp, extractClientIpFromHeaders } from "./util";
 
 const app = new OpenAPIHono().basePath("/api/v1");
 
@@ -57,6 +59,38 @@ app
           message: "Request Timeout after waiting 60 seconds. Please try again later.",
         }),
     ),
+  )
+  .use(
+    rateLimiter({
+      windowMs: 15 * 60 * 1000,
+      limit: 100,
+      standardHeaders: true,
+      keyGenerator: (c) => {
+        let ip: string | null | undefined =
+          c.req.raw.headers.get("x-forwarded-for") ?? c.req.raw.headers.get("x-real-ip") ?? c.req.raw.headers.get("cf-connecting-ip");
+
+        console.log(c.req.raw.headers);
+        if (!ip) {
+          ip = c.req.raw.headers.get("remote-addr");
+        }
+
+        if (ip) {
+          ip = ip.replace(/:\d+[^:]*$/, "");
+        }
+
+        if (ip && isIp(ip)) {
+          return ip;
+        } else {
+          ip = extractClientIpFromHeaders(c);
+          if (ip) {
+            return ip;
+          } else {
+            console.warn("Warning: Unable to extract client IP, defaulting to 'unknown'");
+            return "unknown";
+          }
+        }
+      },
+    }),
   )
   .use(prettyJSON())
   .route("/generate", generate)
