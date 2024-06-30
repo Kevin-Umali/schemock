@@ -69,7 +69,6 @@ app
         let ip: string | null | undefined =
           c.req.raw.headers.get("x-forwarded-for") ?? c.req.raw.headers.get("x-real-ip") ?? c.req.raw.headers.get("cf-connecting-ip");
 
-        console.log(c.req.raw.headers);
         if (!ip) {
           ip = c.req.raw.headers.get("remote-addr");
         }
