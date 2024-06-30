@@ -1,16 +1,20 @@
 {
   "name": "schemock",
   "scripts": {
-    "dev": "bunx run --hot --watch src/index.ts",
-    "build": "bunx build ./src/index.ts --outdir ./dist --minify --splitting --sourcemap --target bun",
-    "start": "bunx run dist/index.js",
-    "format": "bunx prettier --write \"src/**/*.ts\""
+    "dev": "bun run --hot --watch src/index.ts",
+    "build": "bun build ./src/index.ts --outdir ./dist --minify --splitting --sourcemap --target bun",
+    "start": "bun run dist/index.js",
+    "format": "bunx prettier --write \"src/**/*.ts\"",
+    "docker:build": "docker-compose build",
+    "docker:up": "docker-compose up",
+    "docker:down": "docker-compose down"
   },
   "dependencies": {
     "@hono/eslint-config": "^0.0.6",
     "@hono/swagger-ui": "^0.3.0",
     "@hono/zod-openapi": "^0.14.5",
     "@hono/zod-validator": "^0.2.2",
+    "csv-writer": "^1.6.0",
     "hono": "^4.4.9",
     "zod": "^3.23.8"
   },
@@ -18,5 +22,8 @@
     "@faker-js/faker": "^8.4.1",
     "@types/bun": "latest",
     "prettier": "^3.3.2"
+  },
+  "engines": {
+    "bun": ">=1.1.17"
   }
 }

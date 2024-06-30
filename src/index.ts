@@ -3,7 +3,7 @@ import { HTTPException } from "hono/http-exception";
 import { timeout } from "hono/timeout";
 import { secureHeaders } from "hono/secure-headers";
 import { prettyJSON } from "hono/pretty-json";
-import { generate, generateSchemaRoute } from "./routes/generate.route";
+import { generate, generateCSVRoute, generateJSONRoute, generateSQLRoute } from "./routes/generate.route";
 import { swaggerUI } from "@hono/swagger-ui";
 import { logger } from "hono/logger";
 import { OpenAPIHono } from "@hono/zod-openapi";
@@ -31,7 +31,9 @@ app.doc("/doc", {
   tags: [{ name: "Generate Routes", description: "Operations related to generate" }],
 });
 
-app.openAPIRegistry.registerPath(generateSchemaRoute);
+app.openAPIRegistry.registerPath(generateJSONRoute);
+app.openAPIRegistry.registerPath(generateCSVRoute);
+app.openAPIRegistry.registerPath(generateSQLRoute);
 
 app
   .use(secureHeaders())
@@ -74,13 +76,9 @@ app
       deepLinking: true,
       filter: true,
       displayRequestDuration: true,
-      // defaultModelsExpandDepth: 1,
-      // defaultModelExpandDepth: 2,
-      // defaultModelRendering: "example",
-      // showExtensions: true,
-      // showCommonExtensions: true,
     }),
   );
+
 export default {
   port: 3000,
   fetch: app.fetch,
