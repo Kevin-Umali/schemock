@@ -19,31 +19,30 @@ const NestedBaseSchema: ZodTypeAny = z.lazy(() =>
   z
     .record(
       z.string(),
-      z
-        .union([
-          FakerMethods.openapi({ type: "string" }),
-          z
-            .lazy(() => NestedBaseSchema)
-            .optional()
-            .openapi({ type: "object" }),
-          z
-            .object({
-              items: z
-                .lazy(() => NestedBaseSchema)
-                .optional()
-                .openapi({
-                  type: "object",
-                }),
-              count: z.number().max(100).optional().openapi({
-                type: "number",
+      z.union([
+        FakerMethods.openapi({ type: "string" }),
+        z.string().optional().openapi({ type: "string" }),
+        z.number().optional().openapi({ type: "number" }),
+        z.date().optional().openapi({ type: "string" }),
+        z.boolean().optional().openapi({ type: "boolean" }),
+        z
+          .lazy(() => NestedBaseSchema)
+          .optional()
+          .openapi({ type: "object" }),
+        z
+          .object({
+            items: z
+              .lazy(() => NestedBaseSchema)
+              .optional()
+              .openapi({
+                type: "object",
               }),
-            })
-            .openapi({ type: "object" }),
-        ])
-        .refine((data) => !(data.items && data.count === undefined), {
-          message: "Count is required when items is present",
-          path: ["count"],
-        }),
+            count: z.number().max(100).optional().openapi({
+              type: "number",
+            }),
+          })
+          .openapi({ type: "object" }),
+      ]),
     )
     .openapi({ type: "object" }),
 );
@@ -113,6 +112,29 @@ export const GenerateBodySQLRequest = z
     },
   });
 
+export const GenerateBodyTemplateRequest = z
+  .object({
+    template: z.string().openapi({
+      type: "string",
+    }),
+    count: z.number().max(100).optional().openapi({
+      type: "number",
+    }),
+    locale: z.string().optional().default("en").openapi({
+      type: "string",
+    }),
+  })
+  .openapi({
+    description: "Schema for generating fake data based on templates",
+    type: "object",
+    example: {
+      template: "Hello, my name is {{person.firstName}} {{person.lastName}} and my email is {{internet.email}}.",
+      count: 1,
+      locale: "en",
+    },
+  });
+
 export type GenerateBodyJSON = z.infer<typeof GenerateBodyJSONRequest>;
 export type GenerateBodyCSV = z.infer<typeof GenerateBodyCSVRequest>;
 export type GenerateBodySQL = z.infer<typeof GenerateBodySQLRequest>;
+export type GenerateBodyTemplate = z.infer<typeof GenerateBodyTemplateRequest>;

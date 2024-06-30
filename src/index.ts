@@ -3,10 +3,10 @@ import { HTTPException } from "hono/http-exception";
 import { timeout } from "hono/timeout";
 import { secureHeaders } from "hono/secure-headers";
 import { prettyJSON } from "hono/pretty-json";
-import { generate, generateCSVRoute, generateJSONRoute, generateSQLRoute } from "./routes/generate.route";
-import { swaggerUI } from "@hono/swagger-ui";
+import { generate, generateCSVRoute, generateJSONRoute, generateSQLRoute, generateTemplateRoute } from "./routes/generate.route";
 import { logger } from "hono/logger";
 import { OpenAPIHono } from "@hono/zod-openapi";
+import { apiReference } from "@scalar/hono-api-reference";
 
 const app = new OpenAPIHono().basePath("/api/v1");
 
@@ -34,6 +34,7 @@ app.doc("/doc", {
 app.openAPIRegistry.registerPath(generateJSONRoute);
 app.openAPIRegistry.registerPath(generateCSVRoute);
 app.openAPIRegistry.registerPath(generateSQLRoute);
+app.openAPIRegistry.registerPath(generateTemplateRoute);
 
 app
   .use(secureHeaders())
@@ -70,12 +71,12 @@ app
   })
   .get(
     "/ui",
-    swaggerUI({
-      url: "/api/v1/doc",
-      docExpansion: "list",
-      deepLinking: true,
-      filter: true,
-      displayRequestDuration: true,
+    apiReference({
+      theme: "moon",
+      pageTitle: "Schemock API",
+      spec: {
+        url: "/api/v1/doc",
+      },
     }),
   );
 

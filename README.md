@@ -118,3 +118,25 @@ Generates a complex object representing a company structure, including nested de
   "count": 1
 }
 ```
+
+# TODO Features
+
+| Feature | Description | Status |
+| ------- | ----------- | ------ |
+
+## In Consideration
+
+The above features are still in consideration and may be subject to changes or enhancements based on feedback and requirements.
+
+## Suggestions and Contributions
+
+We welcome suggestions and contributions from the community. If you have ideas for improvements or new features, please feel free to suggest them. You can also contribute by adding new features or fixing issues.
+
+To make a suggestion or add a new feature, please:
+
+1. Fork the repository.
+2. Create a new branch for your feature or fix.
+3. Make your changes and commit them with clear messages.
+4. Open a pull request to the main repository.
+
+We appreciate your contributions and look forward to collaborating with you!

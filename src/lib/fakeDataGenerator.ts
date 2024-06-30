@@ -7,7 +7,7 @@ interface BaseSchema {
 }
 
 interface GenerateSchema {
-  [key: string]: string | BaseSchema | GenerateSchema;
+  [key: string]: string | BaseSchema | GenerateSchema | boolean | number | Date;
 }
 
 const CustomFakerFunctions: { [key: string]: () => string } = {
@@ -28,17 +28,33 @@ const isSchemaArray = (value: unknown): value is BaseSchema => {
  * Retrieves a nested function from an object based on a given path.
  *
  * @param {Record<string, any>} obj - The object to search for the nested function.
- * @param {string} path - The path to the nested function, separated by periods.
- * @return {() => any} - The nested function.
- * @throws {Error} - If the path is invalid at any part.
+ * @param {string | number | boolean | Date} path - The path to the nested function, or a primitive value.
+ * @return {() => any} - The nested function or a function returning the path if it's a primitive value.
  */
-const getNestedFunction = (obj: Record<string, any>, path: string): (() => any) => {
-  return path.split(".").reduce((acc: any, part: string) => {
-    if (acc && acc[part] !== undefined) {
-      return acc[part];
+const getNestedFunction = (obj: Record<string, any>, path: string | number | boolean | Date): (() => any) => {
+  if (typeof path === "string") {
+    const parts = path.split(".");
+    if (parts.length === 1) {
+      if (["string", "number", "boolean"].includes(typeof path) || Object.prototype.toString.call(path) === "[object Date]") {
+        return () => path;
+      }
+      throw new Error(`Path ${path} is invalid`);
     }
-    throw new Error(`Path ${path} is invalid at part ${part}`);
-  }, obj);
+
+    return parts.reduce((acc: any, part: string) => {
+      if (acc && acc[part] !== undefined) {
+        return acc[part];
+      }
+      throw new Error(`Path ${path} is invalid at part ${part}`);
+    }, obj);
+  }
+
+  // For non-string types, directly return the value
+  if (["number", "boolean"].includes(typeof path) || Object.prototype.toString.call(path) === "[object Date]") {
+    return () => path;
+  }
+
+  throw new Error(`Path ${path} is invalid`);
 };
 
 /**
@@ -46,7 +62,7 @@ const getNestedFunction = (obj: Record<string, any>, path: string): (() => any) 
  *
  * @param {string} value - The string schema value to handle.
  * @param {Faker} fakerInstance - The Faker instance to use for generating fake data.
- * @return {any} - The result of executing the Faker function, or an error message if the function is not found.
+ * @return {any} - The result of executing the Faker function, or the value itself if it's not a valid schema path.
  */
 const handleStringSchema = (value: string, fakerInstance: Faker): any => {
   try {
@@ -66,7 +82,7 @@ const handleStringSchema = (value: string, fakerInstance: Faker): any => {
     return fakerFunction();
   } catch (error) {
     console.log(error);
-    return `Error accessing function: ${value}`;
+    return (error as Error)?.message || value;
   }
 };
 
@@ -106,12 +122,35 @@ export const generateFakeData = (schema: GenerateSchema, locale: string = "en"):
       fakeData[key] = handleStringSchema(value, fakerInstance);
     } else if (isSchemaArray(value)) {
       fakeData[key] = handleSchemaArray(value, locale);
-    } else if (typeof value === "object" && value !== null) {
-      fakeData[key] = generateFakeData(value, locale);
+    } else if (typeof value === "object" && value !== null && !(value instanceof Date)) {
+      fakeData[key] = generateFakeData(value as GenerateSchema, locale);
     } else {
-      fakeData[key] = `Unhandled type for key: ${key}`;
+      // Directly assign primitive values (boolean, number, date)
+      fakeData[key] = value;
     }
   }
 
   return fakeData;
+};
+
+/**
+ * Generates fake data based on the provided template.
+ *
+ * @param {string} template - The template string with placeholders.
+ * @param {string} [locale="en"] - The locale for generating the fake data. Defaults to "en".
+ * @return {string} The generated fake data string.
+ */
+export const generateFakeDataFromTemplate = (template: string, locale: string = "en"): string => {
+  const fakerInstance = new Faker({
+    locale: localeMap[locale] || localeMap["en"], // Default to 'en' if locale not found
+  });
+
+  return template.replace(/{{(.*?)}}/g, (_, key) => {
+    try {
+      return handleStringSchema(key.trim(), fakerInstance);
+    } catch (error) {
+      console.log(error);
+      return `Error generating data for key: ${key}`;
+    }
+  });
 };

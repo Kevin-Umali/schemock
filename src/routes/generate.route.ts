@@ -1,6 +1,6 @@
-import { GenerateBodyCSVRequest, GenerateBodyJSONRequest, GenerateBodySQLRequest } from "../schema/generate.schema";
+import { GenerateBodyCSVRequest, GenerateBodyJSONRequest, GenerateBodySQLRequest, GenerateBodyTemplateRequest } from "../schema/generate.schema";
 import { HTTPException } from "hono/http-exception";
-import { generateFakeData } from "../util/generateFakeData";
+import { generateFakeData, generateFakeDataFromTemplate } from "../lib/fakeDataGenerator";
 import { OpenAPIHono, createRoute } from "@hono/zod-openapi";
 import { z } from "zod";
 import { createObjectCsvStringifier } from "csv-writer";
@@ -11,6 +11,8 @@ export const generate = new OpenAPIHono();
 export const generateJSONRoute = createRoute({
   method: "post",
   path: "/json",
+  summary: "Generate JSON",
+  description: "Generate JSON data based on defined schemas.",
   request: {
     body: {
       content: {
@@ -46,7 +48,7 @@ export const generateJSONRoute = createRoute({
             }),
         },
       },
-      description: "Generated data",
+      description: "Generated JSON data.",
     },
   },
   tags: ["Generate Routes"],
@@ -68,6 +70,8 @@ generate.openapi(generateJSONRoute, (c) => {
 export const generateCSVRoute = createRoute({
   method: "post",
   path: "/csv",
+  summary: "Generate CSV",
+  description: "Generate CSV file based on defined schemas.",
   request: {
     body: {
       content: {
@@ -87,7 +91,7 @@ export const generateCSVRoute = createRoute({
           }),
         },
       },
-      description: "Generated CSV",
+      description: "Generated CSV content.",
     },
   },
   tags: ["Generate Routes"],
@@ -117,6 +121,8 @@ generate.openapi(generateCSVRoute, (c) => {
 export const generateSQLRoute = createRoute({
   method: "post",
   path: "/sql",
+  summary: "Generate SQL",
+  description: "Generate SQL statements based on defined schemas.",
   request: {
     body: {
       content: {
@@ -136,7 +142,7 @@ export const generateSQLRoute = createRoute({
           }),
         },
       },
-      description: "Generated SQL",
+      description: "Generated SQL statement.",
     },
   },
   tags: ["Generate Routes"],
@@ -157,4 +163,52 @@ generate.openapi(generateSQLRoute, (c) => {
     "Content-Type": "text/sql; charset=utf-8",
     "Content-Disposition": 'attachment; filename="fake_data.sql"',
   });
+});
+
+export const generateTemplateRoute = createRoute({
+  method: "post",
+  path: "/template",
+  summary: "Generate Data from Template",
+  description: "Generate mock data based on a custom template.",
+  request: {
+    body: {
+      content: {
+        "application/json": {
+          schema: GenerateBodyTemplateRequest,
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      content: {
+        "application/json": {
+          schema: z
+            .object({
+              data: z.array(z.string()),
+            })
+            .openapi({
+              type: "object",
+              example: {
+                data: ["Hello, my name is John Doe and my email is john.doe@example.com."],
+              },
+            }),
+        },
+      },
+      description: "Generated data based on the provided template.",
+    },
+  },
+  tags: ["Generate Routes"],
+});
+
+generate.openapi(generateTemplateRoute, (c) => {
+  const { template, count, locale } = c.req.valid("json");
+
+  if (!template) {
+    throw new HTTPException(400, {
+      message: "Invalid template",
+    });
+  }
+  const results = Array.from({ length: count ?? 1 }, () => generateFakeDataFromTemplate(template, locale));
+  return results.length === 1 ? c.json({ data: [results[0]] }) : c.json({ data: results });
 });
