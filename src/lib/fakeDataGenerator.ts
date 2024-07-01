@@ -1,5 +1,6 @@
 import { Faker } from "@faker-js/faker";
 import { localeMap } from "../constant";
+import { generateSuggestion } from "./errorSuggestions";
 
 interface BaseSchema {
   count?: number;
@@ -45,7 +46,8 @@ const getNestedFunction = (obj: Record<string, any>, path: string | number | boo
       if (acc && acc[part] !== undefined) {
         return acc[part];
       }
-      throw new Error(`Path ${path} is invalid at part ${part}`);
+      const suggestion = generateSuggestion(path);
+      throw new Error(`Path ${path} is invalid at part ${part}. ${suggestion}`);
     }, obj);
   }
 
@@ -81,7 +83,6 @@ const handleStringSchema = (value: string, fakerInstance: Faker): any => {
     }
     return fakerFunction();
   } catch (error) {
-    console.log(error);
     return (error as Error)?.message || value;
   }
 };
@@ -123,7 +124,7 @@ export const generateFakeData = (schema: GenerateSchema, locale: string = "en"):
     } else if (isSchemaArray(value)) {
       fakeData[key] = handleSchemaArray(value, locale);
     } else if (typeof value === "object" && value !== null && !(value instanceof Date)) {
-      fakeData[key] = generateFakeData(value as GenerateSchema, locale);
+      fakeData[key] = generateFakeData(value, locale);
     } else {
       // Directly assign primitive values (boolean, number, date)
       fakeData[key] = value;

@@ -1,10 +1,79 @@
-# Schema Properties
+# Schemock: Schema-Based Mock Data Generator
 
-| Property | Description                                                                                                                                    |
-| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| items    | Add this property if you want to define an array of items. The items property should contain the schema definition for each item in the array. |
-| count    | Add this property under items to specify how many items should be generated in the array. If omitted, the array will be empty.                 |
-| locale   | Add this property to specify the locale for generating data. If omitted, the default locale will be used.                                      |
+## Overview
+
+Schemock is a powerful API for generating mock data based on a specified schema. It allows you to create complex data structures with nested properties and arrays, which can be customized using various schema properties.
+
+**For more detailed documentation, visit [Schemock Documentation](https://mobile-kirby-summerwinter-b02fe5c1.koyeb.app/api/v1/ui).**
+
+## Table of Contents
+
+1. [Features](#features)
+2. [Installation](#installation)
+3. [Usage](#usage)
+4. [Examples](#examples)
+5. [Deployment](#deployment)
+6. [Contributing](#contributing)
+
+## Features
+
+### Schema Properties
+
+- **items**: Define an array of items with a schema for each item.
+- **count**: Specify the number of items to generate in the array. If omitted, the array will be empty.
+- **locale**: Set the locale for generating data. Defaults to the standard locale if omitted.
+
+## Installation
+
+To install Schemock, use the following commands:
+
+```bash
+# Clone the repository
+git clone https://github.com/Kevin-Umali/schemock.git
+
+# Navigate to the project directory
+cd schemock
+
+# Install dependencies
+bun install
+```
+
+## Features
+
+### Schema Properties
+
+| Property | Description                                                                                                     |
+| -------- | --------------------------------------------------------------------------------------------------------------- |
+| items    | Define an array of items with a schema for each item.                                                           |
+| count    | Specify the number of items to generate in the array. If omitted, the array will be empty and become an object. |
+| locale   | Set the locale for generating data. Defaults to the standard locale if omitted.                                 |
+
+## Usage
+
+After installation, you can start the server and use the API endpoints to generate mock data.
+
+### Start the server
+
+```bash
+bun dev
+```
+
+### Example Request
+
+Using `curl` to generate mock data:
+
+```bash
+curl -X POST http://localhost:3000/api/v1/generate/json \
+     -H "Content-Type: application/json" \
+     -d '{
+           "schema": {
+             "name": "string",
+             "email": "email"
+           },
+           "locale": "en",
+           "count": 5
+         }'
+```
 
 ## Example Explained
 
@@ -119,16 +188,56 @@ Generates a complex object representing a company structure, including nested de
 }
 ```
 
-# TODO Features
+## Deployment
 
-| Feature | Description | Status |
-| ------- | ----------- | ------ |
+You can deploy Schemock to various platforms with the following buttons:
 
-## In Consideration
+### Deploy to Koyeb
 
-The above features are still in consideration and may be subject to changes or enhancements based on feedback and requirements.
+[![Deploy to Koyeb](https://www.koyeb.com/static/images/deploy/button.svg)](https://app.koyeb.com/deploy?type=git&repository=https://github.com/Kevin-Umali/schemock)
 
-## Suggestions and Contributions
+### Deploy to Heroku
+
+[![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/Kevin-Umali/schemock)
+
+### Deploy to Render
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Kevin-Umali/schemock)
+
+### Deploy to Railway
+
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template?template=https://github.com/Kevin-Umali/schemock)
+
+### Deploy to Vercel
+
+[![Deploy to Vercel](https://vercel.com/button)](https://vercel.com/import/project?template=https://github.com/Kevin-Umali/schemock)
+
+### Other Platforms
+
+For platforms that do not have a direct deploy button, you can follow their respective deployment guides:
+
+- **Fly.io:** Follow the [Fly.io deployment guide](https://fly.io/docs/app-guides/continuous-deployment/) to deploy your application.
+- **Adaptable.io:** Check out the [Adaptable.io documentation](https://adaptable.io/docs/getting-started) for deployment instructions.
+- **Zeabur:** Refer to the [Zeabur deployment guide](https://zeabur.com/docs) to deploy your application.
+- **Glitch:** Import your project into Glitch by visiting [Glitch Import](https://glitch.com/edit/#!/import/github/Kevin-Umali/schemock).
+
+### Deploy with Docker
+
+You can also deploy using Docker. Make sure you have Docker installed, then use the following commands:
+
+```bash
+# Build the Docker image
+docker build -t schemock .
+## or
+bun run docker:build
+
+# Run the Docker container
+docker run -p 3000:3000 schemock
+## or
+bun run docker:up
+```
+
+## Contributing
 
 We welcome suggestions and contributions from the community. If you have ideas for improvements or new features, please feel free to suggest them. You can also contribute by adding new features or fixing issues.
 

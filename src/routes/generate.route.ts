@@ -5,8 +5,25 @@ import { OpenAPIHono, createRoute } from "@hono/zod-openapi";
 import { z } from "zod";
 import { createObjectCsvStringifier } from "csv-writer";
 import { generateInsertStatements } from "../util";
+import { formatToReadableError } from "../lib/errorSuggestions";
 
-export const generate = new OpenAPIHono();
+export const generate = new OpenAPIHono({
+  defaultHook: (result, c) => {
+    if (!result.success) {
+      return c.json(
+        {
+          success: false,
+          errors: result.error.errors.map((e) => ({
+            path: e.path.join("."),
+            message: e.message,
+            readableMessage: formatToReadableError(e),
+          })),
+        },
+        422,
+      );
+    }
+  },
+});
 
 export const generateJSONRoute = createRoute({
   method: "post",

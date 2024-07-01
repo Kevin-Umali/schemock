@@ -1,12 +1,12 @@
 import { z } from "@hono/zod-openapi";
 import type { ZodTypeAny } from "zod";
-import { FakerMethods } from "../constant";
+import { FakerMethods, Locales } from "../constant";
 
 const commonFields = {
-  count: z.number().max(100).optional().openapi({
+  count: z.number().max(100).openapi({
     type: "number",
   }),
-  locale: z.string().optional().default("en").openapi({
+  locale: Locales.openapi({
     type: "string",
   }),
 };

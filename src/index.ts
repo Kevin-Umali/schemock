@@ -5,10 +5,11 @@ import { secureHeaders } from "hono/secure-headers";
 import { prettyJSON } from "hono/pretty-json";
 import { generate, generateCSVRoute, generateJSONRoute, generateSQLRoute, generateTemplateRoute } from "./routes/generate.route";
 import { logger } from "hono/logger";
-import { OpenAPIHono } from "@hono/zod-openapi";
+import { OpenAPIHono, z } from "@hono/zod-openapi";
 import { apiReference } from "@scalar/hono-api-reference";
 import { rateLimiter } from "hono-rate-limiter";
 import { isIp, extractClientIpFromHeaders } from "./util";
+import { FakerMethods, Locales } from "./constant";
 
 const app = new OpenAPIHono().basePath("/api/v1");
 
@@ -37,6 +38,28 @@ app.openAPIRegistry.registerPath(generateJSONRoute);
 app.openAPIRegistry.registerPath(generateCSVRoute);
 app.openAPIRegistry.registerPath(generateSQLRoute);
 app.openAPIRegistry.registerPath(generateTemplateRoute);
+app.openAPIRegistry.registerComponent("schemas", "FakerMethods", {
+  type: "string",
+  enum: FakerMethods.options,
+  example: {
+    schema: {
+      firstName: "person.firstName",
+    },
+    count: 1,
+    locale: "en",
+  },
+  description: "Enumeration of Faker.js methods",
+});
+app.openAPIRegistry.registerComponent("schemas", "Locales", {
+  type: "string",
+  enum: Locales.options,
+  example: {
+    schema: {},
+    count: 1,
+    locale: "ja",
+  },
+  description: "Enumeration of supported locales",
+});
 
 app
   .use(secureHeaders())
@@ -105,13 +128,29 @@ app
   .get(
     "/ui",
     apiReference({
-      theme: "moon",
+      theme: "alternate",
       pageTitle: "Schemock API",
       spec: {
         url: "/api/v1/doc",
       },
+      hideDownloadButton: true,
+      layout: "modern",
+      showSidebar: true,
+      searchHotKey: "k",
+      metaData: {
+        title: "Schemock API",
+        description: "Schemock API Documentation",
+      },
+      withDefaultFonts: true,
     }),
-  );
+  )
+  .onError((err, c) => {
+    if (err instanceof HTTPException) {
+      return err.getResponse();
+    }
+
+    return c.json({ sucess: false, error: err.message }, 500);
+  });
 
 export default {
   port: 3000,
