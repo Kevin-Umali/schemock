@@ -64,3 +64,20 @@ export const extractClientIpFromHeaders = (c: Context): string | null => {
 
   return null;
 };
+
+export const sortNestedData = (data: any[], sortField: string, sortOrder: string) => {
+  const fields = sortField.split(".");
+  return data.sort((a: any, b: any) => {
+    let aValue = a;
+    let bValue = b;
+
+    for (const field of fields) {
+      aValue = aValue[field];
+      bValue = bValue[field];
+    }
+
+    if (aValue < bValue) return sortOrder === "asc" ? -1 : 1;
+    if (aValue > bValue) return sortOrder === "asc" ? 1 : -1;
+    return 0;
+  });
+};

@@ -1,51 +1,5 @@
 import { z } from "@hono/zod-openapi";
-import type { ZodTypeAny } from "zod";
-import { FakerMethods, Locales } from "../constant";
-
-const commonFields = {
-  count: z.number().max(100).openapi({
-    type: "number",
-  }),
-  locale: Locales.openapi({
-    type: "string",
-  }),
-};
-
-const BaseSchema: ZodTypeAny = z.record(z.string(), FakerMethods.openapi({ type: "string" })).openapi({
-  type: "object",
-});
-
-const NestedBaseSchema: ZodTypeAny = z.lazy(() =>
-  z
-    .record(
-      z.string(),
-      z.union([
-        FakerMethods.openapi({ type: "string" }),
-        z.string().optional().openapi({ type: "string" }),
-        z.number().optional().openapi({ type: "number" }),
-        z.date().optional().openapi({ type: "string" }),
-        z.boolean().optional().openapi({ type: "boolean" }),
-        z
-          .lazy(() => NestedBaseSchema)
-          .optional()
-          .openapi({ type: "object" }),
-        z
-          .object({
-            items: z
-              .lazy(() => NestedBaseSchema)
-              .optional()
-              .openapi({
-                type: "object",
-              }),
-            count: z.number().max(100).optional().openapi({
-              type: "number",
-            }),
-          })
-          .openapi({ type: "object" }),
-      ]),
-    )
-    .openapi({ type: "object" }),
-);
+import { NestedBaseSchema, commonFields, BaseSchema } from "./base.schema";
 
 export const GenerateBodyJSONRequest = z
   .object({

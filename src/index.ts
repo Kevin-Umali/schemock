@@ -3,20 +3,22 @@ import { HTTPException } from "hono/http-exception";
 import { timeout } from "hono/timeout";
 import { secureHeaders } from "hono/secure-headers";
 import { prettyJSON } from "hono/pretty-json";
-import { generate, generateCSVRoute, generateJSONRoute, generateSQLRoute, generateTemplateRoute } from "./routes/generate.route";
 import { logger } from "hono/logger";
 import { OpenAPIHono, z } from "@hono/zod-openapi";
 import { apiReference } from "@scalar/hono-api-reference";
 import { rateLimiter } from "hono-rate-limiter";
 import { isIp, extractClientIpFromHeaders } from "./util";
 import { FakerMethods, Locales } from "./constant";
+import { mock, generate } from "./routes/index.route";
+import { generateCSVRoute, generateJSONRoute, generateSQLRoute, generateTemplateRoute } from "./routes/generate.route";
+import { mockPaginationRoute } from "./routes/mock.route";
 
 const app = new OpenAPIHono().basePath("/api/v1");
 
 app.doc("/doc", {
   info: {
     title: "Schemock API",
-    version: "1.0.0",
+    version: "1.1.0",
     description:
       "Schemock is a schema-based data generator for APIs. It allows developers to generate mock data based on defined schemas, aiding in API development and testing.",
     license: {
@@ -30,14 +32,22 @@ app.doc("/doc", {
       url: "/api/v1/generate",
       description: "Prefix for the generate route",
     },
+    {
+      url: "/api/v1/mock",
+      description: "Prefix for the mock route",
+    },
   ],
-  tags: [{ name: "Generate Routes", description: "Operations related to generate" }],
+  tags: [
+    { name: "Generate Routes", description: "Operations related to generate" },
+    { name: "Mock Routes", description: "Operations related to mock" },
+  ],
 });
 
 app.openAPIRegistry.registerPath(generateJSONRoute);
 app.openAPIRegistry.registerPath(generateCSVRoute);
 app.openAPIRegistry.registerPath(generateSQLRoute);
 app.openAPIRegistry.registerPath(generateTemplateRoute);
+app.openAPIRegistry.registerPath(mockPaginationRoute);
 app.openAPIRegistry.registerComponent("schemas", "FakerMethods", {
   type: "string",
   enum: FakerMethods.options,
@@ -116,11 +126,12 @@ app
   )
   .use(prettyJSON())
   .route("/generate", generate)
+  .route("/mock", mock)
   .notFound((c) => {
     return c.json(
       {
         message: "Not Found - Check the documentation for more information.",
-        swagger: "/api/v1/doc",
+        swagger: "/api/v1/ui",
       },
       404,
     );
@@ -155,4 +166,5 @@ app
 export default {
   port: 3000,
   fetch: app.fetch,
+  // app: app,
 };

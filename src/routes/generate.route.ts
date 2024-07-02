@@ -1,8 +1,7 @@
 import { GenerateBodyCSVRequest, GenerateBodyJSONRequest, GenerateBodySQLRequest, GenerateBodyTemplateRequest } from "../schema/generate.schema";
 import { HTTPException } from "hono/http-exception";
 import { generateFakeData, generateFakeDataFromTemplate } from "../lib/fakeDataGenerator";
-import { OpenAPIHono, createRoute } from "@hono/zod-openapi";
-import { z } from "zod";
+import { z, OpenAPIHono, createRoute } from "@hono/zod-openapi";
 import { createObjectCsvStringifier } from "csv-writer";
 import { generateInsertStatements } from "../util";
 import { formatToReadableError } from "../lib/errorSuggestions";

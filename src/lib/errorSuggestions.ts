@@ -64,7 +64,7 @@ export const generateSuggestion = (path: string): string | null => {
   const extendedSearchQuery = `^${path} | ${path} | =${path}`;
 
   const result = fuse.search(extendedSearchQuery);
-  console.log(result);
+
   if (result.length > 0 && result[0]?.score !== undefined && result[0].score < 0.4) {
     return `Did you mean '${result[0].item.value}' (${result[0].item.type})?`;
   }
