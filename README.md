@@ -19,9 +19,11 @@ Schemock is a powerful API for generating mock data based on a specified schema.
 
 ### Schema Properties
 
-- **items**: Define an array of items with a schema for each item.
-- **count**: Specify the number of items to generate in the array. If omitted, the array will be empty.
-- **locale**: Set the locale for generating data. Defaults to the standard locale if omitted.
+| Property | Description                                                                                                     |
+| -------- | --------------------------------------------------------------------------------------------------------------- |
+| items    | Define an array of items with a schema for each item.                                                           |
+| count    | Specify the number of items to generate in the array. If omitted, the array will be empty and become an object. |
+| locale   | Set the locale for generating data. Defaults to the standard locale if omitted.                                 |
 
 ## Installation
 
@@ -37,16 +39,6 @@ cd schemock
 # Install dependencies
 bun install
 ```
-
-## Features
-
-### Schema Properties
-
-| Property | Description                                                                                                     |
-| -------- | --------------------------------------------------------------------------------------------------------------- |
-| items    | Define an array of items with a schema for each item.                                                           |
-| count    | Specify the number of items to generate in the array. If omitted, the array will be empty and become an object. |
-| locale   | Set the locale for generating data. Defaults to the standard locale if omitted.                                 |
 
 ## Usage
 
@@ -140,6 +132,22 @@ Generates an object with an employees array containing three objects, each with 
         "email": "internet.email"
       },
       "count": 3
+    }
+  },
+  "count": 1
+}
+```
+
+### Faker Arguments Example:
+
+This example demonstrates how to pass arguments to the Faker data generator functions directly within the schema. In this case, we are customizing the `internet.email` function by passing a `firstName` argument.
+
+```json
+{
+  "schema": {
+    "user": {
+      "name": "person.firstName",
+      "email": "internet.email({ firstName: 'John' })"
     }
   },
   "count": 1

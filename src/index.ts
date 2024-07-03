@@ -4,7 +4,7 @@ import { timeout } from "hono/timeout";
 import { secureHeaders } from "hono/secure-headers";
 import { prettyJSON } from "hono/pretty-json";
 import { logger } from "hono/logger";
-import { OpenAPIHono, z } from "@hono/zod-openapi";
+import { OpenAPIHono } from "@hono/zod-openapi";
 import { apiReference } from "@scalar/hono-api-reference";
 import { rateLimiter } from "hono-rate-limiter";
 import { isIp, extractClientIpFromHeaders } from "./util";
