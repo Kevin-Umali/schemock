@@ -11,64 +11,66 @@ interface GenerateSchema {
   [key: string]: string | BaseSchema | GenerateSchema | boolean | number | Date;
 }
 
-const CustomFakerFunctions: { [key: string]: () => string } = {
+const CustomFakerFunctions: { [key: string]: (...args: any[]) => any } = {
   customFunction: () => "Custom Value",
+  date: (...args: any[]) => {
+    if (args.length === 1 && (typeof args[0] === "string" || typeof args[0] === "number")) {
+      return new Date(args[0]);
+    }
+    if (args.length > 1 && args.every((arg) => typeof arg === "number" || arg === undefined)) {
+      const [year, month, day, hour, minute, second, millisecond] = args;
+      return new Date(year, month ?? 0, day ?? 1, hour ?? 0, minute ?? 0, second ?? 0, millisecond ?? 0);
+    }
+
+    return new Date();
+  },
 };
 
-/**
- * Checks if the given value is a schema array.
- *
- * @param {unknown} value - The value to check.
- * @return {value is BaseSchema} - Returns true if the value is a schema array, false otherwise.
- */
 const isSchemaArray = (value: unknown): value is BaseSchema => {
   return typeof value === "object" && value !== null && ("items" in value || "count" in value);
 };
 
-/**
- * Retrieves a nested function from an object based on a given path.
- *
- * @param {Record<string, any>} obj - The object to search for the nested function.
- * @param {string | number | boolean | Date} path - The path to the nested function, or a primitive value.
- * @return {() => any} - The nested function or a function returning the path if it's a primitive value.
- */
-const getNestedFunction = (obj: Record<string, any>, path: string | number | boolean | Date): (() => any) => {
-  if (typeof path === "string") {
-    const parts = path.split(".");
-    if (parts.length === 1) {
-      if (["string", "number", "boolean"].includes(typeof path) || Object.prototype.toString.call(path) === "[object Date]") {
-        return () => path;
-      }
-      throw new Error(`Path ${path} is invalid`);
-    }
-
-    return parts.reduce((acc: any, part: string) => {
-      if (acc && acc[part] !== undefined) {
-        return acc[part];
-      }
-      const suggestion = generateSuggestion(path);
-      throw new Error(`Path ${path} is invalid at part ${part}. ${suggestion}`);
-    }, obj);
+const parseArgs = (argsString: string): any[] => {
+  try {
+    // Safely parse the arguments using a function constructor to avoid security risks
+    const args = Function(`"use strict"; return [${argsString}]`)();
+    return args;
+  } catch {
+    throw new Error(`Error parsing arguments: ${argsString}`);
   }
+};
 
-  // For non-string types, directly return the value
-  if (["number", "boolean"].includes(typeof path) || Object.prototype.toString.call(path) === "[object Date]") {
+const getNestedFunction = (obj: Record<string, any>, path: string, args: any[]): (() => any) => {
+  const parts = path.split(".");
+  if (parts.length === 1) {
     return () => path;
   }
 
-  throw new Error(`Path ${path} is invalid`);
+  const nestedFunction = parts.reduce((acc: any, part: string) => {
+    if (acc && acc[part] !== undefined) {
+      return acc[part];
+    }
+    const suggestion = generateSuggestion(path) ?? "Can't find suggestion for this path, please check the documentation https://fakerjs.dev/api/";
+    throw new Error(`Path ${path} is invalid at part ${part}. ${suggestion}`);
+  }, obj);
+
+  return () => nestedFunction(...args);
 };
 
-/**
- * Handles a string schema value by retrieving the corresponding Faker function and executing it.
- *
- * @param {string} value - The string schema value to handle.
- * @param {Faker} fakerInstance - The Faker instance to use for generating fake data.
- * @return {any} - The result of executing the Faker function, or the value itself if it's not a valid schema path.
- */
 const handleStringSchema = (value: string, fakerInstance: Faker): any => {
   try {
-    let fakerFunction: () => any;
+    let fakerFunction: (...args: any[]) => any;
+    let args: any[] = [];
+
+    const argStartIndex = value.indexOf("(");
+    const argEndIndex = value.indexOf(")");
+
+    if (argStartIndex !== -1 && argEndIndex !== -1 && argEndIndex > argStartIndex) {
+      const argsString = value.slice(argStartIndex + 1, argEndIndex);
+      args = parseArgs(argsString);
+      value = value.slice(0, argStartIndex);
+    }
+
     if (value.startsWith("custom.")) {
       const customFunctionKey = value.split(".")[1];
       fakerFunction = CustomFakerFunctions[customFunctionKey];
@@ -76,24 +78,18 @@ const handleStringSchema = (value: string, fakerInstance: Faker): any => {
         throw new Error(`Custom faker function not found: ${customFunctionKey}`);
       }
     } else {
-      fakerFunction = getNestedFunction(fakerInstance as unknown as Record<string, any>, value);
+      fakerFunction = getNestedFunction(fakerInstance as unknown as Record<string, any>, value, args) as (...args: any[]) => any;
       if (typeof fakerFunction !== "function") {
         throw new Error(`Faker function not found: ${value}`);
       }
     }
-    return fakerFunction();
+
+    return fakerFunction(...args);
   } catch (error) {
     return (error as Error)?.message || value;
   }
 };
 
-/**
- * Handles an array schema value by generating fake data based on the provided count or items.
- *
- * @param {BaseSchema} value - The array schema value to handle.
- * @param {string} locale - The locale for generating the fake data.
- * @return {any} The generated fake data based on the array schema value.
- */
 const handleSchemaArray = (value: BaseSchema, locale: string): any => {
   if (value.count) {
     return Array.from({ length: value.count }, () => generateFakeData(value.items || {}, locale));
@@ -104,13 +100,6 @@ const handleSchemaArray = (value: BaseSchema, locale: string): any => {
   }
 };
 
-/**
- * Generates fake data based on the provided schema.
- *
- * @param {GenerateSchema} schema - The schema to generate fake data from.
- * @param {string} [locale="en"] - The locale for generating the fake data. Defaults to "en".
- * @return {Record<string, any>} The generated fake data.
- */
 export const generateFakeData = (schema: GenerateSchema, locale: string = "en"): Record<string, any> => {
   const fakerInstance = new Faker({
     locale: localeMap[locale] || localeMap["en"], // Default to 'en' if locale not found
@@ -134,13 +123,6 @@ export const generateFakeData = (schema: GenerateSchema, locale: string = "en"):
   return fakeData;
 };
 
-/**
- * Generates fake data based on the provided template.
- *
- * @param {string} template - The template string with placeholders.
- * @param {string} [locale="en"] - The locale for generating the fake data. Defaults to "en".
- * @return {string} The generated fake data string.
- */
 export const generateFakeDataFromTemplate = (template: string, locale: string = "en"): string => {
   const fakerInstance = new Faker({
     locale: localeMap[locale] || localeMap["en"], // Default to 'en' if locale not found

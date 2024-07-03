@@ -18,7 +18,7 @@ const app = new OpenAPIHono().basePath("/api/v1");
 app.doc("/doc", {
   info: {
     title: "Schemock API",
-    version: "1.1.0",
+    version: "1.1.1",
     description:
       "Schemock is a schema-based data generator for APIs. It allows developers to generate mock data based on defined schemas, aiding in API development and testing.",
     license: {
