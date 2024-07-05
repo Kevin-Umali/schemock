@@ -12,6 +12,7 @@ import { FakerMethods, Locales } from "./constant";
 import { mock, generate } from "./routes/index.route";
 import { generateCSVRoute, generateJSONRoute, generateSQLRoute, generateTemplateRoute } from "./routes/generate.route";
 import { mockPaginationRoute } from "./routes/mock.route";
+import { helper, helperEnumRoutes } from "./routes/helper.route";
 
 const app = new OpenAPIHono().basePath("/api/v1");
 
@@ -36,10 +37,15 @@ app.doc("/doc", {
       url: "/api/v1/mock",
       description: "Prefix for the mock route",
     },
+    {
+      url: "/api/v1/helper",
+      description: "Prefix for the helper route",
+    },
   ],
   tags: [
-    { name: "Generate Routes", description: "Operations related to generate" },
-    { name: "Mock Routes", description: "Operations related to mock" },
+    { name: "Generate Routes", description: "Operations related to generate, make sure you're using the `/api/v1/generate` endpoint " },
+    { name: "Mock Routes", description: "Operations related to mock, make sure you're using the `/api/v1/mock` endpoint" },
+    { name: "Helper Routes", description: "Operations related to helper, make sure you're using the `/api/v1/helper` endpoint" },
   ],
 });
 
@@ -48,6 +54,7 @@ app.openAPIRegistry.registerPath(generateCSVRoute);
 app.openAPIRegistry.registerPath(generateSQLRoute);
 app.openAPIRegistry.registerPath(generateTemplateRoute);
 app.openAPIRegistry.registerPath(mockPaginationRoute);
+app.openAPIRegistry.registerPath(helperEnumRoutes);
 app.openAPIRegistry.registerComponent("schemas", "FakerMethods", {
   type: "string",
   enum: FakerMethods.options,
@@ -127,6 +134,7 @@ app
   .use(prettyJSON())
   .route("/generate", generate)
   .route("/mock", mock)
+  .route("/helper", helper)
   .notFound((c) => {
     return c.json(
       {
