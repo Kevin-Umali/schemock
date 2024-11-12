@@ -88,7 +88,11 @@ export const GenerateBodyTemplateRequest = z
     },
   });
 
+// prettier-ignore
 export type GenerateBodyJSON = z.infer<typeof GenerateBodyJSONRequest>;
+// prettier-ignore
 export type GenerateBodyCSV = z.infer<typeof GenerateBodyCSVRequest>;
+// prettier-ignore
 export type GenerateBodySQL = z.infer<typeof GenerateBodySQLRequest>;
+// prettier-ignore
 export type GenerateBodyTemplate = z.infer<typeof GenerateBodyTemplateRequest>;

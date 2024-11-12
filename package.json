@@ -10,13 +10,13 @@
     "docker:down": "docker-compose down"
   },
   "dependencies": {
-    "@hono/eslint-config": "^0.0.6",
-    "@hono/zod-openapi": "^0.14.5",
+    "@hono/eslint-config": "^1.0.2",
+    "@hono/zod-openapi": "^0.14.9",
     "@hono/zod-validator": "^0.2.2",
-    "@scalar/hono-api-reference": "^0.5.87",
+    "@scalar/hono-api-reference": "^0.5.159",
     "csv-writer": "^1.6.0",
     "fuse.js": "^7.0.0",
-    "hono": "^4.4.9",
+    "hono": "^4.6.9",
     "hono-rate-limiter": "^0.4.0",
     "zod": "^3.23.8"
   },
@@ -26,6 +26,6 @@
     "prettier": "^3.3.2"
   },
   "engines": {
-    "bun": ">=1.1.17"
+    "bun": ">=1.1.34"
   }
 }

@@ -23,7 +23,7 @@ export const helper = new OpenAPIHono({
 
 export const helperEnumRoutes = createRoute({
   method: "get",
-  path: "/enum/{name}",
+  path: "/helper/enum/{name}",
   request: {
     params: HelperPathParameter,
   },

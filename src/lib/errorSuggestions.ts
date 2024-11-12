@@ -2,7 +2,10 @@ import Fuse from "fuse.js";
 import { FakerMethods } from "../constant";
 import { ZodIssueCode, type ZodIssue } from "zod";
 
-const validFakerMethods = FakerMethods.options.map((method) => ({ type: "method", value: method }));
+const validFakerMethods = FakerMethods.options.map((method) => ({
+  type: "method",
+  value: method,
+}));
 
 const fuse = new Fuse(validFakerMethods, {
   keys: ["value"],

@@ -1,28 +1,31 @@
 import type { Context } from "hono";
+import { getConnInfo } from "hono/bun";
 
-export const generateInsertStatements = (results: Record<string, any>[], tableName: string, multiRowInsert: boolean): string => {
-  if (multiRowInsert) {
-    const columns = Object.keys(results[0]).join(", ");
-    const values = results
-      .map((record, index) => {
-        const formattedValues = Object.values(record)
-          .map((value) => `'${value}'`)
-          .join(", ");
-        return index === 0 ? `(${formattedValues})` : `\t(${formattedValues})`;
-      })
-      .join(",\n");
-    return `INSERT INTO ${tableName} (${columns}) VALUES ${values};`;
-  } else {
-    return results
-      .map((record) => {
-        const columns = Object.keys(record).join(", ");
-        const values = Object.values(record)
-          .map((value) => `'${value}'`)
-          .join(", ");
-        return `INSERT INTO ${tableName} (${columns}) VALUES (${values});`;
-      })
-      .join("\n");
-  }
+// prettier-ignore
+export const generateSingleRowInsertStatements = (results: Record<string, any>[], tableName: string): string => {
+  return results
+    .map((record) => {
+      const columns = Object.keys(record).join(", ");
+      const values = Object.values(record)
+        .map((value) => `'${value}'`)
+        .join(", ");
+      return `INSERT INTO ${tableName} (${columns}) VALUES (${values});`;
+    })
+    .join("\n");
+};
+
+// prettier-ignore
+export const generateMultiRowInsertStatement = (results: Record<string, any>[], tableName: string): string => {
+  const columns = Object.keys(results[0]).join(", ");
+  const values = results
+    .map((record, index) => {
+      const formattedValues = Object.values(record)
+        .map((value) => `'${value}'`)
+        .join(", ");
+      return index === 0 ? `(${formattedValues})` : `\t(${formattedValues})`;
+    })
+    .join(",\n");
+  return `INSERT INTO ${tableName} (${columns}) VALUES ${values};`;
 };
 
 export const isIp = (value: string): boolean => {
@@ -50,7 +53,7 @@ export const extractClientIpFromHeaders = (c: Context): string | null => {
   ];
 
   for (const header of headers) {
-    const rawValue: string | undefined = c.req.raw.headers.get(header.toLowerCase()) || undefined;
+    const rawValue: string | undefined = c.req.raw.headers.get(header.toLowerCase()) ?? undefined;
     if (typeof rawValue === "string") {
       const potentialIps = rawValue.split(",");
       for (const potentialIp of potentialIps) {
@@ -81,3 +84,37 @@ export const sortNestedData = (data: any[], sortField: string, sortOrder: string
     return 0;
   });
 };
+
+export const extractClientIp = (c: Context): string => {
+  const connInfo = getConnInfo(c);
+  if (connInfo && connInfo.remote && connInfo.remote.address) {
+    let ip = cleanIp(connInfo.remote.address);
+    if (isIp(ip)) {
+      return ip;
+    }
+  }
+
+  let ip =
+    c.req.raw.headers.get("x-forwarded-for") ??
+    c.req.raw.headers.get("x-real-ip") ??
+    c.req.raw.headers.get("cf-connecting-ip") ??
+    c.req.raw.headers.get("remote-addr");
+
+  if (ip) {
+    ip = cleanIp(ip);
+    if (isIp(ip)) {
+      console.log("clientIp (from headers):", ip);
+      return ip;
+    }
+  }
+  ip = extractClientIpFromHeaders(c);
+  if (ip) {
+    console.log("clientIp (from additional headers):", ip);
+    return ip;
+  }
+
+  console.warn("Warning: Unable to extract client IP, defaulting to 'unknown'");
+  return "unknown";
+};
+
+const cleanIp = (ip: string): string => ip.replace(/:\d+[^:]*$/, "");

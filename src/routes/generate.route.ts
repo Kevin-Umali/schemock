@@ -3,7 +3,7 @@ import { HTTPException } from "hono/http-exception";
 import { generateFakeData, generateFakeDataFromTemplate } from "../lib/fakeDataGenerator";
 import { z, OpenAPIHono, createRoute } from "@hono/zod-openapi";
 import { createObjectCsvStringifier } from "csv-writer";
-import { generateInsertStatements } from "../util";
+import { generateSingleRowInsertStatements, generateMultiRowInsertStatement } from "../util";
 import { formatToReadableError } from "../lib/errorSuggestions";
 
 export const generate = new OpenAPIHono({
@@ -26,7 +26,7 @@ export const generate = new OpenAPIHono({
 
 export const generateJSONRoute = createRoute({
   method: "post",
-  path: "/json",
+  path: "/generate/json",
   summary: "Generate JSON",
   description: "Generate JSON data based on defined schemas.",
   request: {
@@ -85,7 +85,7 @@ generate.openapi(generateJSONRoute, (c) => {
 
 export const generateCSVRoute = createRoute({
   method: "post",
-  path: "/csv",
+  path: "/generate/csv",
   summary: "Generate CSV",
   description: "Generate CSV file based on defined schemas.",
   request: {
@@ -136,7 +136,7 @@ generate.openapi(generateCSVRoute, (c) => {
 
 export const generateSQLRoute = createRoute({
   method: "post",
-  path: "/sql",
+  path: "/generate/sql",
   summary: "Generate SQL",
   description: "Generate SQL statements based on defined schemas.",
   request: {
@@ -172,7 +172,12 @@ generate.openapi(generateSQLRoute, (c) => {
     });
   }
   const results = Array.from({ length: count ?? 1 }, () => generateFakeData(schema, locale));
-  const insertStatements = generateInsertStatements(results, tableName, multiRowInsert);
+  let insertStatements = "";
+  if (multiRowInsert) {
+    insertStatements = generateMultiRowInsertStatement(results, tableName);
+  } else {
+    insertStatements = generateSingleRowInsertStatements(results, tableName);
+  }
 
   return c.text(insertStatements, 200, {
     "Content-Length": Buffer.byteLength(insertStatements).toString(),
@@ -183,7 +188,7 @@ generate.openapi(generateSQLRoute, (c) => {
 
 export const generateTemplateRoute = createRoute({
   method: "post",
-  path: "/template",
+  path: "/generate/template",
   summary: "Generate Data from Template",
   description: "Generate mock data based on a custom template.",
   request: {

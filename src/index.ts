@@ -7,7 +7,7 @@ import { logger } from "hono/logger";
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { apiReference } from "@scalar/hono-api-reference";
 import { rateLimiter } from "hono-rate-limiter";
-import { isIp, extractClientIpFromHeaders } from "./util";
+import { extractClientIp } from "./util";
 import { FakerMethods, Locales } from "./constant";
 import { mock, generate } from "./routes/index.route";
 import { generateCSVRoute, generateJSONRoute, generateSQLRoute, generateTemplateRoute } from "./routes/generate.route";
@@ -30,22 +30,23 @@ app.doc("/doc", {
   openapi: "3.0.0",
   servers: [
     {
-      url: "/api/v1/generate",
+      url: "/",
       description: "Prefix for the generate route",
-    },
-    {
-      url: "/api/v1/mock",
-      description: "Prefix for the mock route",
-    },
-    {
-      url: "/api/v1/helper",
-      description: "Prefix for the helper route",
     },
   ],
   tags: [
-    { name: "Generate Routes", description: "Operations related to generate, make sure you're using the `/api/v1/generate` endpoint " },
-    { name: "Mock Routes", description: "Operations related to mock, make sure you're using the `/api/v1/mock` endpoint" },
-    { name: "Helper Routes", description: "Operations related to helper, make sure you're using the `/api/v1/helper` endpoint" },
+    {
+      name: "Generate Routes",
+      description: "Operations related to generate, make sure you're using the `/api/v1/generate` endpoint ",
+    },
+    {
+      name: "Mock Routes",
+      description: "Operations related to mock, make sure you're using the `/api/v1/mock` endpoint",
+    },
+    {
+      name: "Helper Routes",
+      description: "Operations related to helper, make sure you're using the `/api/v1/helper` endpoint",
+    },
   ],
 });
 
@@ -105,36 +106,13 @@ app
       windowMs: 15 * 60 * 1000,
       limit: 100,
       standardHeaders: true,
-      keyGenerator: (c) => {
-        let ip: string | null | undefined =
-          c.req.raw.headers.get("x-forwarded-for") ?? c.req.raw.headers.get("x-real-ip") ?? c.req.raw.headers.get("cf-connecting-ip");
-
-        if (!ip) {
-          ip = c.req.raw.headers.get("remote-addr");
-        }
-
-        if (ip) {
-          ip = ip.replace(/:\d+[^:]*$/, "");
-        }
-
-        if (ip && isIp(ip)) {
-          return ip;
-        } else {
-          ip = extractClientIpFromHeaders(c);
-          if (ip) {
-            return ip;
-          } else {
-            console.warn("Warning: Unable to extract client IP, defaulting to 'unknown'");
-            return "unknown";
-          }
-        }
-      },
+      keyGenerator: (c) => extractClientIp(c),
     }),
   )
   .use(prettyJSON())
-  .route("/generate", generate)
-  .route("/mock", mock)
-  .route("/helper", helper)
+  .route("/", generate)
+  .route("/", mock)
+  .route("/", helper)
   .notFound((c) => {
     return c.json(
       {

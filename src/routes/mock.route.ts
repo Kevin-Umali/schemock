@@ -8,7 +8,7 @@ export const mock = new OpenAPIHono();
 
 export const mockPaginationRoute = createRoute({
   method: "post",
-  path: "/pagination",
+  path: "/mock/pagination",
   summary: "Mock Pagination",
   description: "Generate paginated data based on the provided schema.",
   request: {
