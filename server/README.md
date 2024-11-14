@@ -119,7 +119,7 @@ Generates a single object with nested properties, including a nested address obj
 }
 ```
 
-### Array Example:
+### Array of an object Example:
 
 Generates an object with an employees array containing three objects, each with name and email properties.
 
@@ -131,6 +131,22 @@ Generates an object with an employees array containing three objects, each with 
         "name": "person.firstName",
         "email": "internet.email"
       },
+      "count": 3
+    }
+  },
+  "count": 1
+}
+```
+
+### Array of a string Example:
+
+Generates a string array containing three random first names.
+
+```json
+{
+  "schema": {
+    "employees": {
+      "items": "person.firstName",
       "count": 3
     }
   },
@@ -244,16 +260,3 @@ docker run -p 3000:3000 schemock
 ## or
 bun run docker:up
 ```
-
-## Contributing
-
-We welcome suggestions and contributions from the community. If you have ideas for improvements or new features, please feel free to suggest them. You can also contribute by adding new features or fixing issues.
-
-To make a suggestion or add a new feature, please:
-
-1. Fork the repository.
-2. Create a new branch for your feature or fix.
-3. Make your changes and commit them with clear messages.
-4. Open a pull request to the main repository.
-
-We appreciate your contributions and look forward to collaborating with you!
