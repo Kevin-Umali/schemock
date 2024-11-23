@@ -1,6 +1,6 @@
 import { Faker } from '@faker-js/faker'
 import { localeMap } from '../constant'
-import { generateSuggestion } from './errorSuggestions'
+import { generateSuggestion } from './error-suggestion'
 
 interface BaseSchema {
   count?: number

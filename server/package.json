@@ -1,5 +1,6 @@
 {
   "name": "schemock",
+  "version": "1.1.2",
   "scripts": {
     "dev": "bun run --hot --watch src/index.ts",
     "build": "bun build ./src/index.ts --outdir ./dist --minify --splitting --sourcemap --target bun",
@@ -11,19 +12,19 @@
   },
   "dependencies": {
     "@hono/eslint-config": "^1.0.2",
-    "@hono/zod-openapi": "^0.14.9",
+    "@hono/zod-openapi": "^0.16.4",
     "@hono/zod-validator": "^0.2.2",
-    "@scalar/hono-api-reference": "^0.5.159",
+    "@scalar/hono-api-reference": "^0.5.161",
     "csv-writer": "^1.6.0",
     "fuse.js": "^7.0.0",
-    "hono": "^4.6.9",
+    "hono": "^4.6.11",
     "hono-rate-limiter": "^0.4.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {
     "@faker-js/faker": "^8.4.1",
     "@types/bun": "latest",
-    "prettier": "^3.3.2"
+    "prettier": "^3.3.3"
   },
   "engines": {
     "bun": ">=1.1.34"

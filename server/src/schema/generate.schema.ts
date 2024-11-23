@@ -7,8 +7,8 @@ export const GenerateBodyJSONRequest = z
     ...commonFields,
   })
   .openapi({
-    description: 'Schema for generating fake data',
     type: 'object',
+    description: 'Schema for generating fake data',
     example: {
       schema: {
         user: {
@@ -32,8 +32,8 @@ export const GenerateBodyCSVRequest = z
     ...commonFields,
   })
   .openapi({
-    description: 'Schema for generating csv fake data',
     type: 'object',
+    description: 'Schema for generating CSV data.',
     example: {
       schema: {
         name: 'person.firstName',
@@ -52,8 +52,8 @@ export const GenerateBodySQLRequest = z
     multiRowInsert: z.boolean().optional().default(true).openapi({ type: 'boolean' }),
   })
   .openapi({
-    description: 'Schema for generating sql fake data',
     type: 'object',
+    description: 'Schema for generating SQL statements.',
     example: {
       schema: {
         name: 'person.firstName',
@@ -79,8 +79,8 @@ export const GenerateBodyTemplateRequest = z
     }),
   })
   .openapi({
-    description: 'Schema for generating fake data based on templates',
     type: 'object',
+    description: 'Schema for generating data from a template.',
     example: {
       template: 'Hello, my name is {{person.firstName}} {{person.lastName}} and my email is {{internet.email}}.',
       count: 1,

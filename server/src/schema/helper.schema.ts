@@ -5,7 +5,9 @@ export const HelperPathParameter = z.object({
     param: {
       name: 'name',
       in: 'path',
+      required: true,
     },
+    description: 'The name of the enum category to fetch options for.',
     example: 'faker',
   }),
 })

@@ -7,8 +7,8 @@ export const MockBodyPaginationRequest = z
     ...commonFields,
   })
   .openapi({
-    description: 'Schema for generating fake data',
     type: 'object',
+    description: 'Schema for generating paginated data.',
     example: {
       schema: {
         user: {
@@ -34,6 +34,7 @@ export const MockQueryPaginationParams = z
   })
   .openapi({
     type: 'object',
+    description: 'Query parameters for pagination.',
     example: {
       page: '1',
       limit: '10',
