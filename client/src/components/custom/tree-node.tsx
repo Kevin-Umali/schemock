@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { TreeNode, TreeViewProps, DataType, FakerMethod } from "@/types/tree";
 import { DATA_TYPES, FAKER_METHODS } from "@/constants";
 import { hasChildren } from "@/lib/tree";
+import { Button } from "@/components/ui/button";
 
 interface TreeNodeComponentProps {
   node: TreeNode;
@@ -105,34 +106,20 @@ const TreeNodeComponent: React.FC<TreeNodeComponentProps> = memo(
     }, [node, handleAddChild, onNodeAdd, canAddNode]);
 
     const renderControls = () => (
-      <div className="flex items-center space-x-2">
-        <Input value={node.name} onChange={handleNodeNameChange} className="h-8" placeholder="Property Name" />
+      <div className="flex flex-col gap-2 w-full">
+        <div className="flex flex-col sm:flex-row items-center gap-2 w-full">
+          {/* Name Input */}
+          <Input value={node.name} onChange={handleNodeNameChange} className="h-8 w-full" placeholder="Property Name" />
 
-        <Select value={node.type} onValueChange={(value) => handleTypeChange(node.id, value as DataType)}>
-          <SelectTrigger className="w-40">
-            <SelectValue placeholder="Select Type" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              <SelectLabel>Types</SelectLabel>
-              {DATA_TYPES.map((type) => (
-                <SelectItem key={type} value={type}>
-                  {type.charAt(0).toUpperCase() + type.slice(1)}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-
-        {node.type === "array" && (
-          <Select value={node.arrayItemType} onValueChange={(value) => handleArrayItemTypeChange(node.id, value as DataType)}>
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder="Item Type" />
+          {/* Type Select */}
+          <Select value={node.type} onValueChange={(value) => handleTypeChange(node.id, value as DataType)}>
+            <SelectTrigger className="h-8 w-full sm:w-[180px]">
+              <SelectValue placeholder="Select Type" />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
-                <SelectLabel>Item Types</SelectLabel>
-                {DATA_TYPES.filter((type) => type !== "array").map((type) => (
+                <SelectLabel>Types</SelectLabel>
+                {DATA_TYPES.map((type) => (
                   <SelectItem key={type} value={type}>
                     {type.charAt(0).toUpperCase() + type.slice(1)}
                   </SelectItem>
@@ -140,12 +127,45 @@ const TreeNodeComponent: React.FC<TreeNodeComponentProps> = memo(
               </SelectGroup>
             </SelectContent>
           </Select>
-        )}
 
+          {/* Array Count Input */}
+          {node.type === "array" && (
+            <Input
+              type="number"
+              min={1}
+              max={100}
+              value={node.count}
+              onChange={(e) => handleCountChange(node.id, parseInt(e.target.value) ?? 1)}
+              className="h-8 w-full sm:w-[100px]"
+              placeholder="Count"
+            />
+          )}
+
+          {/* Array Item Type Select */}
+          {node.type === "array" && (
+            <Select value={node.arrayItemType} onValueChange={(value) => handleArrayItemTypeChange(node.id, value as DataType)}>
+              <SelectTrigger className="h-8 w-full sm:w-[180px]">
+                <SelectValue placeholder="Item Type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>Item Types</SelectLabel>
+                  {DATA_TYPES.filter((type) => type !== "array").map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {type.charAt(0).toUpperCase() + type.slice(1)}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          )}
+        </div>
+
+        {/* Faker Method Select - Full width */}
         {(["string", "number", "boolean", "date"].includes(node.type) ||
           (node.type === "array" && ["string", "number", "boolean", "date"].includes(node.arrayItemType))) && (
           <Select value={node.fakerMethod ?? ""} onValueChange={(value) => handleFakerMethodChange(node.id, value as FakerMethod)}>
-            <SelectTrigger className="w-60">
+            <SelectTrigger className="h-8 w-full sm:w-[300px]">
               <SelectValue placeholder="Select Faker Method" />
             </SelectTrigger>
             <SelectContent>
@@ -160,18 +180,6 @@ const TreeNodeComponent: React.FC<TreeNodeComponentProps> = memo(
             </SelectContent>
           </Select>
         )}
-
-        {node.type === "array" && (
-          <Input
-            type="number"
-            min={1}
-            max={100}
-            value={node.count}
-            onChange={(e) => handleCountChange(node.id, parseInt(e.target.value) ?? 1)}
-            className="w-20 h-8"
-            placeholder="Count"
-          />
-        )}
       </div>
     );
 
@@ -179,51 +187,60 @@ const TreeNodeComponent: React.FC<TreeNodeComponentProps> = memo(
       <li
         className={cn(
           "relative",
-          level > 0 && "ml-5 border-l border-gray-200",
+          level > 0 && "ml-2 sm:ml-5 border-l border-gray-200",
           isLast && level > 0 && "border-l-0",
-          level > 0 && "before:absolute before:top-[16px] before:left-0 before:w-5 before:h-px before:bg-gray-200",
+          level > 0 && "before:absolute before:top-[16px] before:left-0 before:w-3 sm:before:w-5 before:h-px before:bg-gray-200",
           !isLast && level > 0 && "after:absolute after:top-[16px] after:left-[-1px] after:w-px after:h-full after:bg-gray-200"
         )}
         role="treeitem"
         aria-expanded={hasChildren(node) ? isExpanded : undefined}
         id={nodeId}
       >
-        <div className="flex items-center py-1 group">
-          <div className="flex items-center min-w-0 flex-1">
-            <button
-              onClick={toggleExpand}
-              className={cn("w-6 h-6 flex items-center justify-center rounded-md transition-colors", hasChildren(node) ? "hover:bg-gray-100" : "invisible")}
-            >
-              {hasChildren(node) && (
-                <ChevronRightIcon
-                  className={cn("w-4 h-4 transition-transform duration-200", {
-                    "rotate-90": isExpanded,
-                  })}
-                />
-              )}
-            </button>
+        <div className="flex items-start py-2 group">
+          <Button variant="ghost" onClick={toggleExpand} className="flex-shrink-0 w-6 h-6 mt-1 flex items-center justify-center rounded-md transition-colors">
+            {hasChildren(node) && <ChevronRightIcon className={cn("w-4 h-4 transition-transform duration-200 ease-in-out", isExpanded && "rotate-90")} />}
+          </Button>
 
-            <div className="flex-1 min-w-0 px-2" onClick={handleSelect}>
-              {renderNode ? renderNode(node, handleNameChange) : renderControls()}
-            </div>
+          <div className="flex-1 min-w-0 px-2" onClick={handleSelect}>
+            {renderNode ? renderNode(node, handleNameChange) : renderControls()}
+          </div>
 
-            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-              {allowAdd && canShowAddButton && (!canAddNode || canAddNode(node)) && (
-                <button onClick={handleNodeAdd} className="w-6 h-6 text-green-600 hover:bg-green-50 rounded-md">
-                  <PlusIcon className="w-4 h-4" />
-                </button>
-              )}
-              {allowDelete && canShowDeleteButton && (!canDeleteNode || canDeleteNode(node)) && (
-                <button onClick={handleNodeDelete} className="w-6 h-6 text-red-600 hover:bg-red-50 rounded-md">
-                  <TrashIcon className="w-4 h-4" />
-                </button>
-              )}
-            </div>
+          <div
+            className={cn(
+              "flex-shrink-0 flex items-start gap-1",
+              "transition-all duration-200 ease-in-out",
+              "opacity-100 sm:opacity-0 sm:translate-x-2 sm:group-hover:opacity-100 sm:group-hover:translate-x-0"
+            )}
+          >
+            {allowAdd && canShowAddButton && (!canAddNode || canAddNode(node)) && (
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={handleNodeAdd}
+                className="w-6 h-6 rounded-md transition-all duration-200 hover:bg-emerald-50 hover:border-emerald-200 active:scale-95"
+              >
+                <PlusIcon className="w-4 h-4 text-emerald-500" aria-hidden="true" />
+              </Button>
+            )}
+            {allowDelete && canShowDeleteButton && (!canDeleteNode || canDeleteNode(node)) && (
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={handleNodeDelete}
+                className="w-6 h-6 rounded-md transition-all duration-200 hover:bg-red-50 hover:border-red-200 active:scale-95"
+              >
+                <TrashIcon className="w-4 h-4 text-red-500" aria-hidden="true" />
+              </Button>
+            )}
           </div>
         </div>
 
         {hasChildren(node) && node.children && showChildren && (
-          <ul role="group" aria-labelledby={nodeId}>
+          <ul
+            role="group"
+            aria-labelledby={nodeId}
+            className={cn("transition-all duration-200 ease-in-out", showChildren ? "opacity-100 max-h-[1000px]" : "opacity-0 max-h-0 overflow-hidden")}
+          >
             {node.children.map((child, index) => (
               <TreeNodeComponent
                 key={child.id}
