@@ -32,7 +32,7 @@ const createRouter = () => {
 }
 
 const createApp = () => {
-  const app = createRouter().basePath('/api/v1')
+  const app = createRouter()
 
   app.use(secureHeaders())
   app.use(enhancedLogger({ level: 'debug' }))

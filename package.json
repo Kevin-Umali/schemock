@@ -2,10 +2,10 @@
   "name": "schemock",
   "version": "1.1.2",
   "scripts": {
-    "dev": "bun run --hot --watch src/index.ts",
-    "build": "bun build ./src/index.ts --outdir ./dist --minify --splitting --sourcemap --target bun",
+    "dev": "bun run --hot --watch server/index.ts",
+    "build": "bun build ./server/index.ts --outdir ./dist --minify --splitting --sourcemap --target bun",
     "start": "bun run dist/index.js",
-    "format": "bunx prettier --write \"src/**/*.ts\"",
+    "format": "bunx prettier --write \"server/**/*.ts\"",
     "docker:build": "docker-compose build",
     "docker:up": "docker-compose up",
     "docker:down": "docker-compose down"

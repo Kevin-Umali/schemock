@@ -5,7 +5,7 @@ import type { HonoOpenAPI } from './types'
 import { FakerMethods, Locales } from '../constant'
 
 const configureOpenAPI = (app: HonoOpenAPI) => {
-  app.doc('/doc', {
+  app.doc('/api/v1/doc', {
     info: {
       title: 'Schemock API',
       version: packageJSON.version,
@@ -63,7 +63,7 @@ const configureOpenAPI = (app: HonoOpenAPI) => {
   })
 
   app.get(
-    '/ui',
+    '/api/v1/ui',
     apiReference({
       theme: 'alternate',
       pageTitle: 'Schemock API',

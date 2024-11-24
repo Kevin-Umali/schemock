@@ -4,19 +4,19 @@
     "target": "ESNext",
     "module": "ESNext",
     "moduleDetection": "force",
+    "jsx": "react-jsx",
     "allowJs": true,
+
+    /* Bundler mode */
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
     "noEmit": true,
-    "strict": true,
+
+    /* Linting */
     "skipLibCheck": true,
+    "strict": true,
     "noFallthroughCasesInSwitch": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noPropertyAccessFromIndexSignature": true,
-    "jsx": "react-jsx",
-    "jsxImportSource": "hono/jsx",
-    "types": ["node"]
+    "forceConsistentCasingInFileNames": true
   }
 }
