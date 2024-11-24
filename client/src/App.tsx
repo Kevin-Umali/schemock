@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef } from "react";
 import { TreeNode } from "@/types/tree";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
@@ -6,25 +6,53 @@ import { INITIAL_SCHEMA, LOCALES } from "@/constants";
 import { convertToSchema } from "@/lib/schema";
 import TreeView from "@/components/custom/tree-view";
 import { Button } from "@/components/ui/button";
-import { Check, Copy } from "lucide-react";
+import { Check, Copy, Share2 } from "lucide-react";
 import useCopyToClipboard from "@/hooks/useCopyToClipboard";
 import { cn } from "@/lib/utils";
+import useQueryState from "./hooks/useQueryToState";
+import LZString from "lz-string";
 
 const App = () => {
   const [copiedText, copy] = useCopyToClipboard();
   const idCounter = useRef(7); // Start after initial schema IDs
 
-  const [nodes, setNodes] = useState<TreeNode[]>(INITIAL_SCHEMA);
-  const [count, setCount] = useState(1);
-  const [locale, setLocale] = useState("en");
+  const [compressedNodes, setCompressedNodes] = useQueryState<string>("s", {
+    defaultValue: "",
+  });
+  const [count, setCount] = useQueryState<number>("c", {
+    defaultValue: 1,
+  });
+  const [locale, setLocale] = useQueryState<string>("l", {
+    defaultValue: "en",
+  });
 
-  const generatedSchema = useMemo(() => {
-    return {
+  const nodes: TreeNode[] = useMemo(() => {
+    if (compressedNodes) {
+      try {
+        const decompressed = LZString.decompressFromEncodedURIComponent(compressedNodes);
+        return decompressed ? JSON.parse(decompressed) : INITIAL_SCHEMA;
+      } catch (error) {
+        console.error("Failed to decode nodes from URL:", error);
+        return INITIAL_SCHEMA;
+      }
+    }
+    return INITIAL_SCHEMA;
+  }, [compressedNodes]);
+
+  const setNodes = (newNodes: TreeNode[] | ((prev: TreeNode[]) => TreeNode[])) => {
+    const updatedNodes = typeof newNodes === "function" ? newNodes(nodes) : newNodes;
+    const compressed = LZString.compressToEncodedURIComponent(JSON.stringify(updatedNodes));
+    setCompressedNodes(compressed);
+  };
+
+  const generatedSchema = useMemo(
+    () => ({
       ...convertToSchema(nodes),
       count,
       locale,
-    };
-  }, [nodes, count, locale]);
+    }),
+    [nodes, count, locale]
+  );
 
   const handleCountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value);
@@ -34,6 +62,11 @@ const App = () => {
   const handleCopy = async () => {
     const schemaString = JSON.stringify(generatedSchema, null, 2);
     await copy(schemaString);
+  };
+
+  const handleShare = async () => {
+    await copy(window.location.href);
+    // toast.success("Schema URL copied to clipboard");
   };
 
   const addRootNode = () => {
@@ -63,7 +96,7 @@ const App = () => {
               type="number"
               min={1}
               max={100}
-              value={count}
+              value={count ?? 1}
               onChange={handleCountChange}
               className="w-24 transition-all duration-200 ease-in-out focus:ring-2 focus:ring-blue-500"
             />
@@ -73,7 +106,7 @@ const App = () => {
             <label htmlFor="locale" className="text-sm font-medium text-gray-700">
               Locale:
             </label>
-            <Select value={locale} onValueChange={setLocale}>
+            <Select value={locale ?? "en"} onValueChange={setLocale}>
               <SelectTrigger className="w-40 transition-all duration-200 ease-in-out hover:border-blue-500">
                 <SelectValue placeholder="Select Locale" />
               </SelectTrigger>
@@ -89,9 +122,15 @@ const App = () => {
             </Select>
           </div>
 
-          <Button onClick={addRootNode} className="ml-auto transition-all duration-200 ease-in-out hover:shadow-md" variant="outline">
-            Add Root Node
-          </Button>
+          <div className="ml-auto flex items-center gap-2">
+            <Button onClick={handleShare} variant="outline" className="transition-all duration-200 ease-in-out hover:shadow-md">
+              <Share2 className="w-4 h-4 mr-2" />
+              Share Schema
+            </Button>
+            <Button onClick={addRootNode} variant="outline" className="transition-all duration-200 ease-in-out hover:shadow-md">
+              Add Root Node
+            </Button>
+          </div>
         </div>
       </div>
 
