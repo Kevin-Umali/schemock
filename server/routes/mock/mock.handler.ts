@@ -19,7 +19,6 @@ export const paginationHandler: HonoRouteHandler<PaginationRoute> = async (c) =>
 
   const startIndex = (pageInt - 1) * limitInt
   const endIndex = Math.min(startIndex + limitInt, count)
-  console.log(startIndex, endIndex)
 
   if (startIndex >= count || startIndex < 0) {
     return c.json({ data: [], page: pageInt, limit: limitInt, total: count })

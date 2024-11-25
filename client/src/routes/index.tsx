@@ -6,7 +6,7 @@ import { INITIAL_SCHEMA } from '@/constants'
 import { convertToSchema } from '@/lib/schema'
 import TreeView from '@/components/custom/tree-view'
 import { Button } from '@/components/ui/button'
-import { Check, Copy, Loader2, Share2 } from 'lucide-react'
+import { Braces, Check, Copy, Loader2, Plus, Share2 } from 'lucide-react'
 import useCopyToClipboard from '@/hooks/useCopyToClipboard'
 import { cn } from '@/lib/utils'
 import LZString from 'lz-string'
@@ -14,6 +14,9 @@ import { createFileRoute, useNavigate, useRouterState } from '@tanstack/react-ro
 import { fallback, zodValidator } from '@tanstack/zod-adapter'
 import { z } from 'zod'
 import Spinner from '@/components/custom/spinner'
+import SchemaTabs, { type GenericTab } from '@/components/custom/schema-tabs'
+import { useGenerateJSON } from '@/api/mutations'
+import { type GenerateBodyJSON } from '@server/schema/generate.schema'
 
 const generateSearchSchema = z.object({
   s: fallback(z.string(), '').optional().default(''),
@@ -56,6 +59,8 @@ function Index() {
     }
     return INITIAL_SCHEMA
   })
+
+  const { mutate: generateJSON, data: generatedData, error: generationError, isPending: isGenerating } = useGenerateJSON()
 
   useEffect(() => {
     if (compressedNodes) {
@@ -124,10 +129,10 @@ function Index() {
     [setCount],
   )
 
-  const handleCopy = async () => {
+  const handleCopy = useCallback(async () => {
     const schemaString = JSON.stringify(generatedSchema, null, 2)
     await copy(schemaString)
-  }
+  }, [copy, generatedSchema])
 
   const handleShare = async () => {
     if (isDirty) {
@@ -158,6 +163,70 @@ function Index() {
     ])
   }
 
+  const handleGenerateJSON = useCallback(() => {
+    generateJSON(generatedSchema as GenerateBodyJSON)
+  }, [generateJSON, generatedSchema])
+
+  const tabs = useMemo(
+    () => [
+      {
+        value: 'schemaBuilder' as GenericTab,
+        label: 'Schema Builder',
+        content: (
+          <div className='border border-gray-300 rounded-lg p-4 bg-white shadow-sm transition-all duration-300 ease-in-out hover:shadow-md'>
+            <h2 className='text-lg font-semibold text-gray-900 mb-4'>Schema Builder</h2>
+            <div className='transition-all duration-300 ease-in-out'>
+              <TreeView nodes={localNodes} onChange={setNodes} allowAdd allowDelete defaultExpanded />
+            </div>
+          </div>
+        ),
+      },
+      {
+        value: 'generatedSchema' as GenericTab,
+        label: 'Generated Schema',
+        content: (
+          <div className='border border-gray-300 rounded-lg p-4 bg-white shadow-sm transition-all duration-300 ease-in-out hover:shadow-md'>
+            <div className='flex justify-between items-center mb-4'>
+              <h2 className='text-lg font-semibold text-gray-900'>Generated Schema</h2>
+              <Button
+                variant='outline'
+                size='sm'
+                onClick={handleCopy}
+                className='flex items-center gap-2 relative w-24 justify-center transition-all duration-200 ease-in-out hover:shadow-md'
+              >
+                {/* Copied State */}
+                <div
+                  className={cn(
+                    'flex items-center gap-2 absolute transition-all duration-300 ease-in-out transform',
+                    copiedText ? 'scale-100 opacity-100' : 'scale-0 opacity-0',
+                  )}
+                >
+                  <Check className='w-4 h-4 text-emerald-500' />
+                  <span className='text-emerald-500 text-sm'>Copied!</span>
+                </div>
+                {/* Copy Button */}
+                <div
+                  className={cn(
+                    'flex items-center gap-2 absolute transition-all duration-300 ease-in-out transform',
+                    copiedText ? 'scale-0 opacity-0' : 'scale-100 opacity-100',
+                  )}
+                >
+                  <Copy className='w-4 h-4' />
+                  <span className='text-sm'>Copy</span>
+                </div>
+              </Button>
+            </div>
+            <pre className={cn('bg-gray-50 p-4 rounded-md text-sm transition-all duration-300 ease-in-out hover:shadow-inner')}>
+              {JSON.stringify(generatedSchema, null, 2)}
+            </pre>
+          </div>
+        ),
+      },
+      // Add more tabs here if needed
+    ],
+    [localNodes, setNodes, handleCopy, generatedSchema, copiedText],
+  )
+
   return (
     <div className='p-4 max-w-7xl mx-auto'>
       {isRouteLoading ? (
@@ -166,8 +235,10 @@ function Index() {
         </div>
       ) : (
         <>
+          {/* Control Panel */}
           <div className='border border-gray-300 rounded-lg p-4 mb-6 bg-white shadow-sm transition-all duration-200 ease-in-out hover:shadow-md'>
             <div className='flex flex-wrap items-center gap-4'>
+              {/* Count Input */}
               <div className='flex items-center gap-2'>
                 <label htmlFor='count' className='text-sm font-medium text-gray-700'>
                   Count:
@@ -183,6 +254,7 @@ function Index() {
                 />
               </div>
 
+              {/* Locale Selector */}
               <div className='flex items-center gap-2'>
                 <label htmlFor='locale' className='text-sm font-medium text-gray-700'>
                   Locale:
@@ -203,61 +275,44 @@ function Index() {
                 </Select>
               </div>
 
+              {/* Action Buttons */}
               <div className='ml-auto flex items-center gap-2'>
                 <Button onClick={handleShare} variant='outline' className='transition-all duration-200 ease-in-out hover:shadow-md'>
                   <Share2 className='w-4 h-4 mr-2' />
                   {isDirty ? 'Save & Share Schema' : 'Share Schema'}
                 </Button>
                 <Button onClick={addRootNode} variant='outline' className='transition-all duration-200 ease-in-out hover:shadow-md'>
+                  <Plus className='w-4 h-4 mr-2' />
                   Add Root Node
                 </Button>
-              </div>
-            </div>
-          </div>
-
-          <div className='flex flex-col gap-6'>
-            <div className='border border-gray-300 rounded-lg p-4 bg-white shadow-sm transition-all duration-300 ease-in-out hover:shadow-md'>
-              <h2 className='text-lg font-semibold text-gray-900 mb-4'>Schema Builder</h2>
-              <div className='transition-all duration-300 ease-in-out'>
-                <TreeView nodes={localNodes} onChange={setNodes} allowAdd allowDelete defaultExpanded />
-              </div>
-            </div>
-
-            <div className='border border-gray-300 rounded-lg p-4 bg-white shadow-sm transition-all duration-300 ease-in-out hover:shadow-md'>
-              <div className='flex justify-between items-center mb-4'>
-                <h2 className='text-lg font-semibold text-gray-900'>Generated Schema</h2>
                 <Button
-                  variant='outline'
-                  size='sm'
-                  onClick={handleCopy}
-                  className='flex items-center gap-2 relative w-24 justify-center transition-all duration-200 ease-in-out hover:shadow-md'
+                  onClick={handleGenerateJSON}
+                  variant='default'
+                  disabled={isGenerating}
+                  className={cn('transition-all hover:shadow-md', isGenerating && 'opacity-70')}
                 >
-                  <div
-                    className={cn(
-                      'flex items-center gap-2 absolute transition-all duration-300 ease-in-out transform',
-                      copiedText ? 'scale-100 opacity-100' : 'scale-0 opacity-0',
-                    )}
-                  >
-                    <Check className='w-4 h-4 text-emerald-500' />
-                    <span className='text-emerald-500 text-sm'>Copied!</span>
-                  </div>
-                  <div
-                    className={cn(
-                      'flex items-center gap-2 absolute transition-all duration-300 ease-in-out transform',
-                      copiedText ? 'scale-0 opacity-0' : 'scale-100 opacity-100',
-                    )}
-                  >
-                    <Copy className='w-4 h-4' />
-                    <span className='text-sm'>Copy</span>
-                  </div>
+                  {isGenerating ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <Braces className='mr-2 h-4 w-4 ' />}
+                  Generate JSON
                 </Button>
               </div>
-              <pre className={cn('bg-gray-50 p-4 rounded-md text-sm transition-all duration-300 ease-in-out hover:shadow-inner')}>
-                {JSON.stringify(generatedSchema, null, 2)}
-              </pre>
             </div>
           </div>
+
+          {/* SchemaTabs Component */}
+          <SchemaTabs tabs={tabs} defaultTab='schemaBuilder' />
         </>
+      )}
+      {generationError && (
+        <div className='mt-4 p-4 bg-red-50 rounded-lg border border-red-200 shadow-sm text-red-700'>
+          <h3 className='text-sm font-medium'>Error:</h3>
+          <p>{generationError.message}</p>
+        </div>
+      )}
+      {generatedData && (
+        <div className='mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200 shadow-sm'>
+          <h3 className='text-sm font-medium text-gray-900 mb-2'>Generated Result:</h3>
+          <pre className='text-sm text-gray-700'>{JSON.stringify(generatedData, null, 2)}</pre>
+        </div>
       )}
     </div>
   )

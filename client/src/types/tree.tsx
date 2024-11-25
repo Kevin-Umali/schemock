@@ -55,3 +55,9 @@ export interface TreeViewProps {
   canDeleteNode?: (node: TreeNode) => boolean
   canRenameNode?: (node: TreeNode, newName: string) => boolean
 }
+
+export interface GeneratedSchema {
+  schema: Record<string, unknown>
+  count: number
+  locale: string
+}

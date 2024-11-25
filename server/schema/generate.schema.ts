@@ -92,3 +92,4 @@ export type GenerateBodyJSON = z.infer<typeof GenerateBodyJSONRequest>
 export type GenerateBodyCSV = z.infer<typeof GenerateBodyCSVRequest>
 export type GenerateBodySQL = z.infer<typeof GenerateBodySQLRequest>
 export type GenerateBodyTemplate = z.infer<typeof GenerateBodyTemplateRequest>
+export type GenerateLocale = GenerateBodyJSON['locale']
