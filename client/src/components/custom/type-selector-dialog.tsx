@@ -9,6 +9,16 @@ import { cn } from '@/lib/utils'
 import { DialogDescription, DialogTitle } from '@radix-ui/react-dialog'
 import { Check } from 'lucide-react'
 
+const baseTypeDescriptions: { [key: string]: string } = {
+  array: 'List of repeating items',
+  object: 'Nested structure with properties',
+}
+
+const baseTypeDetailedDescriptions: { [key: string]: string } = {
+  array: 'Create a list of repeating items. You can specify the number of items and their type (e.g., array of objects, strings, numbers).',
+  object: 'Create a nested structure with custom properties. Add multiple fields to build complex data structures or JSON schemas.',
+}
+
 interface TypeSelectorDialogProps {
   onSelect: (value: string) => void
   selectedValue?: string
@@ -47,11 +57,17 @@ const TypeSelectorDialog: React.FC<TypeSelectorDialogProps> = ({ onSelect, selec
       return (
         <Button
           variant='ghost'
-          className={cn('w-full justify-start relative', selectedValue === selectedCategory && 'bg-muted font-medium')}
+          className={cn('w-full flex flex-col items-start p-3 h-auto hover:bg-muted relative', selectedValue === selectedCategory && 'bg-muted font-medium')}
           onClick={() => handleSelect(selectedCategory)}
         >
-          {selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1)}
-          {selectedValue === selectedCategory && <span className='absolute right-2'>✓</span>}
+          {' '}
+          <div className='flex justify-between w-full'>
+            {selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1)}
+            {selectedValue === selectedCategory && <Check className='ml-2 h-4 w-4' />}
+          </div>
+          {(selectedCategory.toLowerCase() === 'array' || selectedCategory.toLowerCase() === 'object') && (
+            <span className='text-sm text-muted-foreground whitespace-normal text-left'>{baseTypeDetailedDescriptions[selectedCategory.toLowerCase()]}</span>
+          )}
         </Button>
       )
     }
@@ -97,25 +113,29 @@ const TypeSelectorDialog: React.FC<TypeSelectorDialogProps> = ({ onSelect, selec
         </Button>
       </DialogTrigger>
       <DialogContent className='max-w-5xl'>
-        <div className='flex h-[600px] gap-4'>
+        <div className='flex flex-col md:flex-row h-[650px] md:h-[600px] gap-4'>
           {/* Left Panel - Categories */}
-          <div className='w-1/3 flex flex-col'>
+          <div className='w-full md:w-1/3 flex flex-col h-1/2 md:h-full'>
             <div className='mb-4'>
               <DialogTitle className='text-lg font-semibold'>Categories</DialogTitle>
               <DialogDescription className='text-sm text-muted-foreground'>Select a category to view options</DialogDescription>
             </div>
-            <ScrollArea className='flex-1 border rounded-md'>
+            <ScrollArea className='flex-1 border rounded-md overflow-auto'>
               <div className='p-2'>
                 <div className='font-semibold mb-2'>Base Types</div>
                 {baseTypes.map((type) => (
-                  <Button
-                    key={type}
-                    variant='ghost'
-                    className={cn('w-full justify-start mb-1', selectedCategory === type && 'bg-muted')}
-                    onClick={() => setSelectedCategory(type)}
-                  >
-                    {type.charAt(0).toUpperCase() + type.slice(1)}
-                  </Button>
+                  <div key={type} className='mb-3'>
+                    <Button
+                      variant='ghost'
+                      className={cn('w-full justify-start mb-1 flex flex-col items-start h-auto', selectedCategory === type && 'bg-muted')}
+                      onClick={() => setSelectedCategory(type)}
+                    >
+                      {type.charAt(0).toUpperCase() + type.slice(1)}
+                      {(type.toLowerCase() === 'array' || type.toLowerCase() === 'object') && (
+                        <span className='text-xs text-muted-foreground whitespace-normal text-left'>{baseTypeDescriptions[type.toLowerCase()]}</span>
+                      )}
+                    </Button>
+                  </div>
                 ))}
 
                 <div className='font-semibold mb-2 mt-4'>Faker Categories</div>
@@ -135,19 +155,19 @@ const TypeSelectorDialog: React.FC<TypeSelectorDialogProps> = ({ onSelect, selec
           </div>
 
           {/* Right Panel - Methods */}
-          <div className='w-2/3 flex flex-col'>
+          <div className='w-full md:w-2/3 flex flex-col h-1/2 md:h-full'>
             <div className='mb-4'>
               <DialogTitle className='text-lg font-semibold'>Available Methods</DialogTitle>
               <DialogDescription className='text-sm text-muted-foreground mb-2'>Search and select methods to generate data</DialogDescription>
               <Input placeholder='Search methods...' value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className='h-8' />
             </div>
-            <ScrollArea className='flex-1 border rounded-md'>
+            <ScrollArea className='flex-1 border rounded-md overflow-auto'>
               <div className='p-4'>{renderMethodContent()}</div>
             </ScrollArea>
           </div>
         </div>
         <DialogFooter>
-          <Button className='w-52' variant='outline' onClick={() => setOpen(false)}>
+          <Button className='w-full md:w-52 mt-2' variant='outline' onClick={() => setOpen(false)}>
             Close
           </Button>
         </DialogFooter>

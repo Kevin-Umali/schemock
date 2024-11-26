@@ -58,12 +58,7 @@ const TreeNodeControls: React.FC<TreeNodeControlsProps> = ({
       <div className='flex flex-col sm:flex-row items-center gap-2 w-full'>
         <Input value={node.label} onChange={(e) => handleLabelChange(node.id, e.target.value)} className='h-8 w-full' placeholder='Property Name' />
 
-        <TypeSelectorDialog
-          onSelect={handleTypeSelect}
-          selectedValue={node.fakerFunction ?? node.dataType}
-          baseTypes={BASE_TYPES}
-          fakerMethods={fakerMethods}
-        />
+        <TypeSelectorDialog onSelect={handleTypeSelect} selectedValue={node.dataType} baseTypes={BASE_TYPES} fakerMethods={fakerMethods} />
 
         {isArrayNode(node) && (
           <>
