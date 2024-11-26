@@ -1,51 +1,48 @@
 // src/components/custom/tree-node.tsx
 
-import React, { useState, memo, useId, useCallback, useMemo } from 'react'
-import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { ChevronRightIcon, PlusIcon, TrashIcon } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { TreeNode, TreeViewProps, DataType, FakerMethod } from '@/types/tree'
-
-import { getFakerCategories, getFakerMethodsByCategory, hasChildren, isArrayNode } from '@/lib/tree'
+import React, { memo, useState, useCallback, useId } from 'react'
+import { ChevronRightIcon } from 'lucide-react'
+import TreeNodeControls from '@/components/custom/tree-node-controls'
+import TreeNodeActions from '@/components/custom/tree-node-actions'
+import { TreeDataNode, TreeViewOptions, NodeDataType, FakerFunction } from '@/types/tree'
 import { Button } from '@/components/ui/button'
-import { useRouteContext } from '@tanstack/react-router'
-import { BASE_TYPES } from '@/constants'
+import { hasChildren } from '@/lib/tree'
+import { cn } from '@/lib/utils'
 
-interface TreeNodeComponentProps {
-  node: TreeNode
+interface TreeNodeProps {
+  node: TreeDataNode
   level: number
   isLast: boolean
-  handleNameChange: (id: string, name: string) => void
-  handleTypeChange: (id: string, type: DataType) => void
-  handleFakerMethodChange: (id: string, method: FakerMethod) => void
-  handleArrayItemTypeChange: (id: string, type: DataType) => void
+  handleLabelChange: (id: string, label: string) => void
+  handleDataTypeChange: (id: string, type: NodeDataType) => void
+  handleFakerFunctionChange: (id: string, method: FakerFunction) => void
+  handleItemDataTypeChange: (id: string, type: NodeDataType) => void
   handleCountChange: (id: string, count: number) => void
   handleAddChild: (parentId: string) => void
   handleDelete: (id: string) => void
-  renderNode?: TreeViewProps['renderNode']
+  renderNode?: TreeViewOptions['renderNode']
   allowAdd?: boolean
   allowDelete?: boolean
   defaultExpanded?: boolean
-  onNodeSelect?: TreeViewProps['onNodeSelect']
-  onNodeExpand?: TreeViewProps['onNodeExpand']
-  onNodeAdd?: TreeViewProps['onNodeAdd']
-  onNodeDelete?: TreeViewProps['onNodeDelete']
-  onNodeRename?: TreeViewProps['onNodeRename']
-  canAddNode?: TreeViewProps['canAddNode']
-  canDeleteNode?: TreeViewProps['canDeleteNode']
-  canRenameNode?: TreeViewProps['canRenameNode']
+  onNodeSelect?: TreeViewOptions['onNodeSelect']
+  onNodeExpand?: TreeViewOptions['onNodeExpand']
+  onNodeAdd?: TreeViewOptions['onNodeAdd']
+  onNodeDelete?: TreeViewOptions['onNodeDelete']
+  onNodeRename?: TreeViewOptions['onNodeRename']
+  canAddNode?: TreeViewOptions['canAddNode']
+  canDeleteNode?: TreeViewOptions['canDeleteNode']
+  canRenameNode?: TreeViewOptions['canRenameNode']
 }
 
-const TreeNodeComponent: React.FC<TreeNodeComponentProps> = memo(
+const TreeNode: React.FC<TreeNodeProps> = memo(
   ({
     node,
     level,
     isLast,
-    handleNameChange,
-    handleTypeChange,
-    handleFakerMethodChange,
-    handleArrayItemTypeChange,
+    handleLabelChange,
+    handleDataTypeChange,
+    handleFakerFunctionChange,
+    handleItemDataTypeChange,
     handleCountChange,
     handleAddChild,
     handleDelete,
@@ -61,36 +58,10 @@ const TreeNodeComponent: React.FC<TreeNodeComponentProps> = memo(
     canAddNode,
     canDeleteNode,
     canRenameNode,
+    ...props
   }) => {
-    const fakerMethods = useRouteContext({
-      from: '/',
-      select: (state) => state.fakerMethods,
-    })
-
-    const categories = useMemo(() => getFakerCategories(fakerMethods), [fakerMethods])
-
-    // Use type guard to get array item type
-    const getNodeType = (node: TreeNode): DataType => {
-      if (isArrayNode(node)) {
-        return node.arrayItemType
-      }
-      return node.type
-    }
-
-    const availableMethods = useMemo(() => {
-      const type = getNodeType(node)
-      if (type === 'object' || type === 'array') {
-        return []
-      }
-      return getFakerMethodsByCategory(fakerMethods, type)
-    }, [node, fakerMethods])
-
     const [isExpanded, setIsExpanded] = useState<boolean>(defaultExpanded)
     const nodeId = useId()
-
-    const showChildren = hasChildren(node) && isExpanded && node.children && node.children.length > 0
-    const canShowAddButton = node.type === 'object' || (isArrayNode(node) && node.arrayItemType === 'object')
-    const canShowDeleteButton = !node.isRoot
 
     const toggleExpand = useCallback(() => {
       setIsExpanded((prev) => {
@@ -104,15 +75,24 @@ const TreeNodeComponent: React.FC<TreeNodeComponentProps> = memo(
       onNodeSelect?.(node)
     }, [node, onNodeSelect])
 
-    const handleNodeNameChange = useCallback(
-      (event: React.ChangeEvent<HTMLInputElement>) => {
-        const newName = event.target.value
-        if (canRenameNode && !canRenameNode(node, newName)) return
-        handleNameChange(node.id, newName)
-        onNodeRename?.(node, newName)
+    const handleNodeLabelChange = useCallback(
+      (id: string, newLabel: string) => {
+        if (canRenameNode && !canRenameNode(node, newLabel)) return
+        handleLabelChange(id, newLabel)
+        onNodeRename?.(node, newLabel)
       },
-      [node, handleNameChange, onNodeRename, canRenameNode],
+      [node, handleLabelChange, onNodeRename, canRenameNode],
     )
+
+    const handleNodeAdd = useCallback(() => {
+      if (canAddNode && !canAddNode(node)) return
+      handleAddChild(node.id)
+      onNodeAdd?.(node, {
+        id: `${node.id}-${Date.now()}`,
+        label: 'New Node',
+        dataType: 'string',
+      } as TreeDataNode)
+    }, [node, handleAddChild, onNodeAdd, canAddNode])
 
     const handleNodeDelete = useCallback(() => {
       if (canDeleteNode && !canDeleteNode(node)) return
@@ -120,115 +100,7 @@ const TreeNodeComponent: React.FC<TreeNodeComponentProps> = memo(
       onNodeDelete?.(node)
     }, [node, handleDelete, onNodeDelete, canDeleteNode])
 
-    const handleNodeAdd = useCallback(() => {
-      if (canAddNode && !canAddNode(node)) return
-      handleAddChild(node.id)
-      onNodeAdd?.(node, {
-        id: `${node.id}-${Date.now()}`,
-        name: 'New Node',
-        type: 'string',
-      })
-    }, [node, handleAddChild, onNodeAdd, canAddNode])
-
-    const renderControls = () => (
-      <div className='flex flex-col gap-2 w-full'>
-        <div className='flex flex-col sm:flex-row items-center gap-2 w-full'>
-          {/* Name Input */}
-          <Input value={node.name} onChange={handleNodeNameChange} className='h-8 w-full' placeholder='Property Name' />
-
-          {/* Type Select */}
-          <Select
-            value={node.type}
-            onValueChange={(value) => {
-              handleTypeChange(node.id, value as DataType)
-              // Reset the faker method
-              // handleFakerMethodChange(node.id, '')
-            }}
-          >
-            <SelectTrigger className='h-8 w-full sm:w-[180px]'>
-              <SelectValue placeholder='Select Type' />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>Base Types</SelectLabel>
-                {BASE_TYPES.map((type) => (
-                  <SelectItem key={type} value={type}>
-                    {type.charAt(0).toUpperCase() + type.slice(1)}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-              <SelectGroup>
-                <SelectLabel>Faker Categories</SelectLabel>
-                {categories.map((category) => (
-                  <SelectItem key={category} value={category}>
-                    {category.charAt(0).toUpperCase() + category.slice(1)}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-
-          {/* Array Count Input */}
-          {isArrayNode(node) && (
-            <Input
-              type='number'
-              min={1}
-              max={100}
-              value={node.count}
-              onChange={(e) => handleCountChange(node.id, parseInt(e.target.value) ?? 1)}
-              className='h-8 w-full sm:w-[100px]'
-              placeholder='Count'
-            />
-          )}
-
-          {/* Array Item Type Select */}
-          {isArrayNode(node) && (
-            <Select value={node.arrayItemType} onValueChange={(value) => handleArrayItemTypeChange(node.id, value as DataType)}>
-              <SelectTrigger className='h-8 w-full sm:w-[180px]'>
-                <SelectValue placeholder='Item Type' />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectLabel>Base Types</SelectLabel>
-                  {BASE_TYPES.filter((type) => type !== 'array').map((type) => (
-                    <SelectItem key={type} value={type}>
-                      {type.charAt(0).toUpperCase() + type.slice(1)}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-                <SelectGroup>
-                  <SelectLabel>Faker Categories</SelectLabel>
-                  {categories.map((category) => (
-                    <SelectItem key={category} value={category}>
-                      {category.charAt(0).toUpperCase() + category.slice(1)}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          )}
-        </div>
-
-        {/* Faker Method Select - Full width */}
-        {availableMethods.length > 0 && node.type !== 'object' && node.type !== 'array' && (
-          <Select value={node.fakerMethod ?? ''} onValueChange={(value) => handleFakerMethodChange(node.id, value as FakerMethod)}>
-            <SelectTrigger className='h-8 w-full sm:w-[300px]'>
-              <SelectValue placeholder='Select Faker Method' />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>Available Methods</SelectLabel>
-                {availableMethods.map((method) => (
-                  <SelectItem key={method} value={method}>
-                    {method}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        )}
-      </div>
-    )
+    const showChildren = hasChildren(node) && isExpanded && node.children && node.children.length > 0
 
     return (
       <li
@@ -249,37 +121,29 @@ const TreeNodeComponent: React.FC<TreeNodeComponentProps> = memo(
           </Button>
 
           <div className='flex-1 min-w-0 px-2' onClick={handleSelect}>
-            {renderNode ? renderNode(node, handleNameChange) : renderControls()}
+            {renderNode ? (
+              renderNode(node, handleNodeLabelChange)
+            ) : (
+              <TreeNodeControls
+                node={node}
+                handleLabelChange={handleNodeLabelChange}
+                handleDataTypeChange={handleDataTypeChange}
+                handleFakerFunctionChange={handleFakerFunctionChange}
+                handleItemDataTypeChange={handleItemDataTypeChange}
+                handleCountChange={handleCountChange}
+              />
+            )}
           </div>
 
-          <div
-            className={cn(
-              'flex-shrink-0 flex items-start gap-1',
-              'transition-all duration-200 ease-in-out',
-              'opacity-100 sm:opacity-0 sm:translate-x-2 sm:group-hover:opacity-100 sm:group-hover:translate-x-0',
-            )}
-          >
-            {allowAdd && canShowAddButton && (!canAddNode || canAddNode(node)) && (
-              <Button
-                variant='outline'
-                size='icon'
-                onClick={handleNodeAdd}
-                className='w-6 h-6 rounded-md transition-all duration-200 hover:bg-emerald-50 hover:border-emerald-200 active:scale-95'
-              >
-                <PlusIcon className='w-4 h-4 text-emerald-500' aria-hidden='true' />
-              </Button>
-            )}
-            {allowDelete && canShowDeleteButton && (!canDeleteNode || canDeleteNode(node)) && (
-              <Button
-                variant='outline'
-                size='icon'
-                onClick={handleNodeDelete}
-                className='w-6 h-6 rounded-md transition-all duration-200 hover:bg-red-50 hover:border-red-200 active:scale-95'
-              >
-                <TrashIcon className='w-4 h-4 text-red-500' aria-hidden='true' />
-              </Button>
-            )}
-          </div>
+          <TreeNodeActions
+            node={node}
+            allowAdd={allowAdd}
+            allowDelete={allowDelete}
+            handleAddChild={handleNodeAdd}
+            handleDelete={handleNodeDelete}
+            canAddNode={canAddNode}
+            canDeleteNode={canDeleteNode}
+          />
         </div>
 
         {hasChildren(node) && node.children && showChildren && (
@@ -289,15 +153,15 @@ const TreeNodeComponent: React.FC<TreeNodeComponentProps> = memo(
             className={cn('transition-all duration-200 ease-in-out', showChildren ? 'opacity-100 max-h-[1000px]' : 'opacity-0 max-h-0 overflow-hidden')}
           >
             {node.children.map((child, index) => (
-              <TreeNodeComponent
+              <TreeNode
                 key={child.id}
                 node={child}
                 level={level + 1}
-                isLast={index === node.children!.length - 1}
-                handleNameChange={handleNameChange}
-                handleTypeChange={handleTypeChange}
-                handleFakerMethodChange={handleFakerMethodChange}
-                handleArrayItemTypeChange={handleArrayItemTypeChange}
+                isLast={index === (node.children?.length ?? 0) - 1}
+                handleLabelChange={handleLabelChange}
+                handleDataTypeChange={handleDataTypeChange}
+                handleFakerFunctionChange={handleFakerFunctionChange}
+                handleItemDataTypeChange={handleItemDataTypeChange}
                 handleCountChange={handleCountChange}
                 handleAddChild={handleAddChild}
                 handleDelete={handleDelete}
@@ -313,6 +177,7 @@ const TreeNodeComponent: React.FC<TreeNodeComponentProps> = memo(
                 canAddNode={canAddNode}
                 canDeleteNode={canDeleteNode}
                 canRenameNode={canRenameNode}
+                {...props}
               />
             ))}
           </ul>
@@ -322,6 +187,6 @@ const TreeNodeComponent: React.FC<TreeNodeComponentProps> = memo(
   },
 )
 
-TreeNodeComponent.displayName = 'TreeNodeComponent'
+TreeNode.displayName = 'TreeNode'
 
-export default TreeNodeComponent
+export default TreeNode

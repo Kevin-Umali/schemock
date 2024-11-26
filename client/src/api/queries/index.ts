@@ -25,3 +25,23 @@ export const getHelperEnumsQueryOptions = (helperParam: HelperPath) => {
 export const useGetHelperEnums = (helperParam: HelperPath) => {
   return useQuery(getHelperEnumsQueryOptions(helperParam))
 }
+
+const getFakerFunctions = async () => {
+  const res = await api.helper.faker.$get()
+
+  if (!res.ok) throw new Error('Server error')
+
+  return (await res.json()).data
+}
+
+export const getFakerFunctionsQueryOptions = () => {
+  return queryOptions({
+    queryKey: ['get-faker-functions'] as const,
+    queryFn: () => getFakerFunctions(),
+    enabled: true,
+  })
+}
+
+export const useGetFakerFunctions = () => {
+  return useQuery(getFakerFunctionsQueryOptions())
+}

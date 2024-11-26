@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { TreeNode } from '@/types/tree'
+import { TreeDataNode } from '@/types/tree'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import { INITIAL_SCHEMA } from '@/constants'
@@ -47,7 +47,7 @@ function Index() {
   const idCounter = useRef(7) // Start after initial schema IDs
 
   const [isDirty, setIsDirty] = useState(false)
-  const [localNodes, setLocalNodes] = useState<TreeNode[]>(() => {
+  const [localNodes, setLocalNodes] = useState<TreeDataNode[]>(() => {
     if (compressedNodes) {
       try {
         const decompressed = LZString.decompressFromEncodedURIComponent(compressedNodes)
@@ -78,7 +78,7 @@ function Index() {
   }, [compressedNodes])
 
   const setNodes = useCallback(
-    (newNodes: TreeNode[] | ((prev: TreeNode[]) => TreeNode[])) => {
+    (newNodes: TreeDataNode[] | ((prev: TreeDataNode[]) => TreeDataNode[])) => {
       const updatedNodes = typeof newNodes === 'function' ? newNodes(localNodes) : newNodes
       setLocalNodes(updatedNodes)
       setIsDirty(true) // Mark as dirty when nodes change
@@ -155,9 +155,9 @@ function Index() {
       ...prev,
       {
         id: `node-${idCounter.current}`,
-        name: 'newRoot',
-        type: 'object',
-        isRoot: false,
+        label: 'newRoot',
+        dataType: 'object',
+        isRootNode: false,
         children: [],
       },
     ])

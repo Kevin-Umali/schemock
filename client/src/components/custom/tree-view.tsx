@@ -1,18 +1,18 @@
 // src/components/custom/tree-view.tsx
 
 import React, { useCallback } from 'react'
-import { TreeNode, TreeViewProps, DataType, FakerMethod, ArrayNode } from '@/types/tree'
+import { TreeDataNode, TreeViewOptions, NodeDataType, FakerFunction, ArrayNode } from '@/types/tree'
 import { updateNodeInTree, createNode, isArrayNode } from '@/lib/tree'
-import TreeNodeComponent from './tree-node'
+import TreeNode from './tree-node'
 
-const TreeView: React.FC<TreeViewProps> = ({
+const TreeView: React.FC<TreeViewOptions> = ({
   nodes,
   onChange,
   renderNode,
   allowAdd = false,
   allowDelete = false,
   defaultExpanded = true,
-  onNodeChange,
+  onNodeUpdate,
   onNodeSelect,
   onNodeExpand,
   onNodeAdd,
@@ -22,39 +22,39 @@ const TreeView: React.FC<TreeViewProps> = ({
   canDeleteNode,
   canRenameNode,
 }) => {
-  const handleNameChange = useCallback(
-    (id: string, name: string) => {
+  const handleLabelChange = useCallback(
+    (id: string, label: string) => {
       const updatedNodes = updateNodeInTree(nodes, id, (node) => {
-        const updatedNode = { ...node, name }
-        onNodeChange?.(updatedNode, 'name', { previousName: node.name })
+        const updatedNode = { ...node, label }
+        onNodeUpdate?.(updatedNode, 'label', { previousLabel: node.label })
         return updatedNode
       })
       onChange(updatedNodes)
     },
-    [nodes, onChange, onNodeChange],
+    [nodes, onChange, onNodeUpdate],
   )
 
-  const handleTypeChange = useCallback(
-    (id: string, type: DataType) => {
+  const handleDataTypeChange = useCallback(
+    (id: string, dataType: NodeDataType) => {
       const updatedNodes = updateNodeInTree(nodes, id, (node) => {
         // Create base properties
         const baseProps = {
           id: node.id,
-          name: node.name,
-          type,
-          isRoot: node.isRoot,
+          label: node.label,
+          dataType,
+          isRootNode: node.isRootNode,
         }
 
         // Handle conversion to different types
-        if (type === 'object') {
+        if (dataType === 'object') {
           return {
             ...baseProps,
             children: [],
           }
-        } else if (type === 'array') {
+        } else if (dataType === 'array') {
           return {
             ...baseProps,
-            arrayItemType: 'object', // default to object
+            itemDataType: 'object', // default to object
             count: 1,
             children: [],
           }
@@ -62,46 +62,46 @@ const TreeView: React.FC<TreeViewProps> = ({
           // For faker categories
           return {
             ...baseProps,
-            fakerMethod: undefined, // Reset faker method when type changes
+            fakerFunction: undefined, // Reset faker function when type changes
           }
         }
       })
       onChange(updatedNodes)
-      onNodeChange?.(updatedNodes[0], 'type')
+      onNodeUpdate?.(updatedNodes[0], 'dataType')
     },
-    [nodes, onChange, onNodeChange],
+    [nodes, onChange, onNodeUpdate],
   )
 
-  const handleFakerMethodChange = useCallback(
-    (id: string, method: FakerMethod) => {
+  const handleFakerFunctionChange = useCallback(
+    (id: string, method: FakerFunction) => {
       const updatedNodes = updateNodeInTree(nodes, id, (node) => {
-        const updatedNode = { ...node, fakerMethod: method }
-        onNodeChange?.(updatedNode, 'fakerMethod', { previousMethod: node.fakerMethod })
+        const updatedNode = { ...node, fakerFunction: method }
+        onNodeUpdate?.(updatedNode, 'fakerFunction', { previousMethod: node.fakerFunction })
         return updatedNode
       })
       onChange(updatedNodes)
     },
-    [nodes, onChange, onNodeChange],
+    [nodes, onChange, onNodeUpdate],
   )
 
-  const handleArrayItemTypeChange = useCallback(
-    (id: string, type: DataType) => {
+  const handleItemDataTypeChange = useCallback(
+    (id: string, dataType: NodeDataType) => {
       const updatedNodes = updateNodeInTree(nodes, id, (node) => {
         if (!isArrayNode(node)) return node
 
         const updatedNode = {
           ...node,
-          arrayItemType: type,
-          children: type === 'object' ? [] : undefined,
-          fakerMethod: undefined,
+          itemDataType: dataType,
+          children: dataType === 'object' ? [] : undefined,
+          fakerFunction: undefined,
         } as ArrayNode
 
-        onNodeChange?.(updatedNode, 'arrayItemType')
+        onNodeUpdate?.(updatedNode, 'itemDataType')
         return updatedNode
       })
       onChange(updatedNodes)
     },
-    [nodes, onChange, onNodeChange],
+    [nodes, onChange, onNodeUpdate],
   )
 
   const handleCountChange = useCallback(
@@ -110,12 +110,12 @@ const TreeView: React.FC<TreeViewProps> = ({
         if (!isArrayNode(node)) return node
 
         const updatedNode = { ...node, count }
-        onNodeChange?.(updatedNode, 'count', { previousCount: node.count })
+        onNodeUpdate?.(updatedNode, 'count', { previousCount: node.count })
         return updatedNode
       })
       onChange(updatedNodes)
     },
-    [nodes, onChange, onNodeChange],
+    [nodes, onChange, onNodeUpdate],
   )
 
   const handleAddChild = useCallback(
@@ -128,18 +128,18 @@ const TreeView: React.FC<TreeViewProps> = ({
           ...node,
           children: [...children, newNode],
         }
-        onNodeChange?.(newNode, 'add', { parentNode: node })
+        onNodeUpdate?.(newNode, 'add', { parentNode: node })
         return updatedNode
       })
       onChange(updatedNodes)
     },
-    [nodes, onChange, onNodeChange],
+    [nodes, onChange, onNodeUpdate],
   )
 
   const handleDelete = useCallback(
     (id: string) => {
-      let deletedNode: TreeNode | undefined
-      const deleteNode = (nodes: TreeNode[]): TreeNode[] => {
+      let deletedNode: TreeDataNode | undefined
+      const deleteNode = (nodes: TreeDataNode[]): TreeDataNode[] => {
         return nodes
           .filter((node) => {
             if (node.id === id) {
@@ -157,25 +157,25 @@ const TreeView: React.FC<TreeViewProps> = ({
       }
       const updatedNodes = deleteNode(nodes)
       if (deletedNode) {
-        onNodeChange?.(deletedNode, 'delete')
+        onNodeUpdate?.(deletedNode, 'delete')
       }
       onChange(updatedNodes)
     },
-    [nodes, onChange, onNodeChange],
+    [nodes, onChange, onNodeUpdate],
   )
 
   return (
     <ul role='tree' className='tree-view'>
       {nodes.map((node, index) => (
-        <TreeNodeComponent
+        <TreeNode
           key={node.id}
           node={node}
           level={0}
           isLast={index === nodes.length - 1}
-          handleNameChange={handleNameChange}
-          handleTypeChange={handleTypeChange}
-          handleFakerMethodChange={handleFakerMethodChange}
-          handleArrayItemTypeChange={handleArrayItemTypeChange}
+          handleLabelChange={handleLabelChange}
+          handleDataTypeChange={handleDataTypeChange}
+          handleFakerFunctionChange={handleFakerFunctionChange}
+          handleItemDataTypeChange={handleItemDataTypeChange}
           handleCountChange={handleCountChange}
           handleAddChild={handleAddChild}
           handleDelete={handleDelete}
@@ -196,5 +196,7 @@ const TreeView: React.FC<TreeViewProps> = ({
     </ul>
   )
 }
+
+TreeView.displayName = 'TreeView'
 
 export default TreeView

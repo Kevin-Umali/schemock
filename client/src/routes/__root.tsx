@@ -1,4 +1,4 @@
-import { getHelperEnumsQueryOptions } from '@/api/queries'
+import { getFakerFunctionsQueryOptions, getHelperEnumsQueryOptions } from '@/api/queries'
 import { type QueryClient } from '@tanstack/react-query'
 import { createRootRouteWithContext, Link, Outlet } from '@tanstack/react-router'
 
@@ -10,7 +10,7 @@ interface RootRouteProps {
 
 export const Route = createRootRouteWithContext<RootRouteProps>()({
   beforeLoad: async ({ context }) => {
-    const fakerMethods = await context.queryClient.ensureQueryData(getHelperEnumsQueryOptions({ name: 'faker' }))
+    const fakerMethods = await context.queryClient.ensureQueryData(getFakerFunctionsQueryOptions())
     const locales = await context.queryClient.ensureQueryData(getHelperEnumsQueryOptions({ name: 'locale' }))
     return { fakerMethods, locales }
   },

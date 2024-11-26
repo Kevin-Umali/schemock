@@ -37,4 +37,6 @@ const SchemaTabs: React.FC<SchemaTabsProps> = ({ tabs, defaultTab, onTabChange }
   )
 }
 
+SchemaTabs.displayName = 'SchemaTabs'
+
 export default SchemaTabs

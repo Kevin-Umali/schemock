@@ -10,4 +10,6 @@ const Spinner = ({ show, wait }: { show?: boolean; wait?: string }) => {
   )
 }
 
+Spinner.displayName = 'Spinner'
+
 export default Spinner

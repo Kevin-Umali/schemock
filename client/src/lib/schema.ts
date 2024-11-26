@@ -1,14 +1,14 @@
 // src/lib/schema.ts
-import { TreeNode } from '@/types/tree'
+import { TreeDataNode } from '@/types/tree'
 import { isArrayNode, isObjectNode } from '@/lib/tree'
 
-export const convertToSchema = (nodes: TreeNode[]): { schema: Record<string, unknown> } => {
-  const convert = (node: TreeNode): unknown => {
+export const convertToSchema = (nodes: TreeDataNode[]): { schema: Record<string, unknown> } => {
+  const convert = (node: TreeDataNode): unknown => {
     if (isArrayNode(node)) {
-      if (node.arrayItemType === 'object' && node.children) {
+      if (node.itemDataType === 'object' && node.children) {
         const childSchema = node.children.reduce(
           (acc, child) => {
-            acc[child.name] = convert(child)
+            acc[child.label] = convert(child) // Updated from `child.name`
             return acc
           },
           {} as Record<string, unknown>,
@@ -21,7 +21,7 @@ export const convertToSchema = (nodes: TreeNode[]): { schema: Record<string, unk
       }
 
       return {
-        items: node.fakerMethod,
+        items: node.fakerFunction, // Updated from `node.fakerMethod`
         count: node.count,
       }
     }
@@ -29,23 +29,23 @@ export const convertToSchema = (nodes: TreeNode[]): { schema: Record<string, unk
     if (isObjectNode(node)) {
       return node.children.reduce(
         (acc, child) => {
-          acc[child.name] = convert(child)
+          acc[child.label] = convert(child) // Updated from `child.name`
           return acc
         },
         {} as Record<string, unknown>,
       )
     }
 
-    return node.fakerMethod
+    return node.fakerFunction // Updated from `node.fakerMethod`
   }
 
   // Only process root nodes
-  const rootNodes = nodes.filter((node) => node.isRoot)
+  const rootNodes = nodes.filter((node) => node.isRootNode) // Updated from `node.isRoot`
 
   // Combine all root nodes into a single schema
   const schema = rootNodes.reduce(
     (acc, node) => {
-      acc[node.name] = convert(node)
+      acc[node.label] = convert(node) // Updated from `node.name`
       return acc
     },
     {} as Record<string, unknown>,

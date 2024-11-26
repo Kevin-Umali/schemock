@@ -7,7 +7,11 @@ const app = createApp()
 
 configureOpenAPI(app)
 
-// const routes = [generateRoutes, mockRoutes, helperRoutes]
+const routes = [generateRoutes, mockRoutes, helperRoutes]
+
+routes.forEach((route) => {
+  app.route('/api/v1', route)
+})
 
 const apiRoutes = app.basePath('/api/v1').route('/', generateRoutes).route('/', mockRoutes).route('/', helperRoutes)
 

@@ -1,56 +1,56 @@
 // src/constants/index.ts
 
-import { TreeNode } from '@/types/tree'
+import { TreeDataNode } from '@/types/tree'
 
 export const BASE_TYPES = ['object', 'array'] as const
 
-export const INITIAL_SCHEMA: TreeNode[] = [
+export const INITIAL_SCHEMA: TreeDataNode[] = [
   {
     id: 'node-1',
-    name: 'user',
-    type: 'object',
-    isRoot: true,
+    label: 'user', // Updated from "name"
+    dataType: 'object', // Updated from "type"
+    isRootNode: true, // Updated from "isRoot"
     children: [
       {
         id: 'node-2',
-        name: 'name',
-        type: 'person',
-        fakerMethod: 'person.firstName',
-        isRoot: false,
+        label: 'name', // Updated from "name"
+        dataType: 'person', // Updated from "type"
+        fakerFunction: 'person.firstName', // Updated from "fakerMethod"
+        isRootNode: false, // Updated from "isRoot"
       },
       {
         id: 'node-3',
-        name: 'email',
-        type: 'internet',
-        fakerMethod: 'internet.email',
-        isRoot: false,
+        label: 'email', // Updated from "name"
+        dataType: 'internet', // Updated from "type"
+        fakerFunction: 'internet.email', // Updated from "fakerMethod"
+        isRootNode: false, // Updated from "isRoot"
       },
       {
         id: 'node-4',
-        name: 'address',
-        type: 'object',
-        isRoot: false,
+        label: 'address', // Updated from "name"
+        dataType: 'object', // Updated from "type"
+        isRootNode: false, // Updated from "isRoot"
         children: [
           {
             id: 'node-5',
-            name: 'street',
-            type: 'location',
-            fakerMethod: 'location.streetAddress',
-            isRoot: false,
+            label: 'street', // Updated from "name"
+            dataType: 'location', // Updated from "type"
+            fakerFunction: 'location.streetAddress', // Updated from "fakerMethod"
+            isRootNode: false, // Updated from "isRoot"
           },
           {
             id: 'node-6',
-            name: 'city',
-            type: 'location',
-            fakerMethod: 'location.city',
-            isRoot: false,
+            label: 'city', // Updated from "name"
+            dataType: 'location', // Updated from "type"
+            fakerFunction: 'location.city', // Updated from "fakerMethod"
+            isRootNode: false, // Updated from "isRoot"
           },
           {
             id: 'node-7',
-            name: 'country',
-            type: 'location',
-            fakerMethod: 'location.country',
-            isRoot: false,
+            label: 'country', // Updated from "name"
+            dataType: 'location', // Updated from "type"
+            fakerFunction: 'location.country', // Updated from "fakerMethod"
+            isRootNode: false, // Updated from "isRoot"
           },
         ],
       },
