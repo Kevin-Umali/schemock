@@ -6,7 +6,7 @@ import { INITIAL_SCHEMA } from '@/constants'
 import { convertToSchema } from '@/lib/schema'
 import TreeView from '@/components/custom/tree-view'
 import { Button } from '@/components/ui/button'
-import { Braces, Check, Copy, Loader2, Plus, Share2 } from 'lucide-react'
+import { Braces, Check, Copy, Download, Loader2, Plus, Share2 } from 'lucide-react'
 import useCopyToClipboard from '@/hooks/useCopyToClipboard'
 import { cn } from '@/lib/utils'
 import LZString from 'lz-string'
@@ -17,6 +17,7 @@ import Spinner from '@/components/custom/spinner'
 import SchemaTabs, { type GenericTab } from '@/components/custom/schema-tabs'
 import { useGenerateJSON } from '@/api/mutations'
 import { type GenerateBodyJSON } from '@server/schema/generate.schema'
+import AnimatedJSON from '@/components/custom/animated-json'
 
 const generateSearchSchema = z.object({
   s: fallback(z.string(), '').optional().default(''),
@@ -29,7 +30,7 @@ export const Route = createFileRoute('/')({
   component: Index,
   pendingComponent: () => (
     <div className='flex items-center justify-center'>
-      <Loader2 className='w-10 h-10 animate-spin' />
+      <Spinner show text='Loading...' />
     </div>
   ),
   pendingMinMs: 3000,
@@ -173,7 +174,7 @@ function Index() {
         value: 'schemaBuilder' as GenericTab,
         label: 'Schema Builder',
         content: (
-          <div className='border border-gray-300 rounded-lg p-4 bg-white shadow-sm transition-all duration-300 ease-in-out hover:shadow-md'>
+          <div className='border rounded-lg p-4 shadow-sm transition-all duration-300 ease-in-out hover:shadow-md'>
             <h2 className='text-lg font-semibold text-gray-900 mb-4'>Schema Builder</h2>
             <div className='transition-all duration-300 ease-in-out'>
               <TreeView nodes={localNodes} onChange={setNodes} allowAdd allowDelete defaultExpanded />
@@ -185,7 +186,7 @@ function Index() {
         value: 'generatedSchema' as GenericTab,
         label: 'Generated Schema',
         content: (
-          <div className='border border-gray-300 rounded-lg p-4 bg-white shadow-sm transition-all duration-300 ease-in-out hover:shadow-md'>
+          <div className='border rounded-lg p-4 shadow-sm transition-all duration-300 ease-in-out hover:shadow-md'>
             <div className='flex justify-between items-center mb-4'>
               <h2 className='text-lg font-semibold text-gray-900'>Generated Schema</h2>
               <Button
@@ -230,13 +231,13 @@ function Index() {
   return (
     <div className='p-4 max-w-7xl mx-auto'>
       {isRouteLoading ? (
-        <div className='flex items-center justify-center'>
-          <Spinner show={isRouteLoading} />
+        <div className='flex min-h-[50vh] items-center justify-center'>
+          <Spinner show text='Loading schema' />
         </div>
       ) : (
         <>
           {/* Control Panel */}
-          <div className='border border-gray-300 rounded-lg p-4 mb-6 bg-white shadow-sm transition-all duration-200 ease-in-out hover:shadow-md'>
+          <div className='border rounded-lg p-4 mb-6 shadow-sm transition-all duration-200 ease-in-out hover:shadow-md'>
             <div className='flex flex-wrap items-center gap-4'>
               {/* Count Input */}
               <div className='flex items-center gap-2'>
@@ -291,7 +292,7 @@ function Index() {
                   disabled={isGenerating}
                   className={cn('transition-all hover:shadow-md', isGenerating && 'opacity-70')}
                 >
-                  {isGenerating ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <Braces className='mr-2 h-4 w-4 ' />}
+                  {isGenerating ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <Braces className='mr-2 h-4 w-4' />}
                   Generate JSON
                 </Button>
               </div>
@@ -300,19 +301,75 @@ function Index() {
 
           {/* SchemaTabs Component */}
           <SchemaTabs tabs={tabs} defaultTab='schemaBuilder' />
+
+          {/* Generated Data */}
+          <div className='mt-6 border rounded-lg p-4 shadow-sm bg-card'>
+            {isGenerating ? (
+              <div className='flex items-center justify-center gap-2 p-20'>
+                <Spinner show text='Generating JSON...' />
+              </div>
+            ) : generatedData ? (
+              <div>
+                <div className='flex justify-between items-center mb-4'>
+                  <h3 className='text-lg font-semibold text-card-foreground'>Generated Result</h3>
+                  <div className='flex gap-2'>
+                    {/* Copy Button */}
+                    <Button
+                      variant='outline'
+                      size='sm'
+                      onClick={async () => {
+                        await copy(JSON.stringify(generatedData, null, 2))
+                        // Optionally, set a timeout to reset copiedText after a delay
+                      }}
+                      className='flex items-center gap-2 relative w-24 justify-center'
+                    >
+                      <div className={cn('flex items-center gap-2', copiedText && 'text-emerald-500')}>
+                        {copiedText ? <Check className='w-4 h-4' /> : <Copy className='w-4 h-4' />}
+                        <span className='text-sm'>{copiedText ? 'Copied!' : 'Copy'}</span>
+                      </div>
+                    </Button>
+
+                    {/* Download Button */}
+                    <Button
+                      variant='outline'
+                      size='sm'
+                      onClick={() => {
+                        const blob = new Blob([JSON.stringify(generatedData, null, 2)], { type: 'application/json' })
+                        const url = URL.createObjectURL(blob)
+                        const link = document.createElement('a')
+                        link.href = url
+                        link.download = 'generated-schema.json'
+                        link.click()
+                        URL.revokeObjectURL(url)
+                      }}
+                      className='flex items-center gap-2'
+                    >
+                      <Download className='mr-1 h-4 w-4' />
+                      <span className='text-sm'>Download</span>
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Display Generated JSON */}
+                <AnimatedJSON
+                  data={generatedData}
+                  animate='characters' // or "characters" or "simple"
+                  className='rounded-md p-4 bg-input text-foreground overflow-auto'
+                />
+              </div>
+            ) : (
+              <p className='text-muted-foreground text-center p-20'>{`Build your schema and click the "Generate JSON" button to see the result.`}</p>
+            )}
+          </div>
+
+          {/* Handle Generation Errors */}
+          {generationError && (
+            <div className='mt-4 p-4 bg-destructive rounded-lg border border-destructive-foreground shadow-sm text-destructive-foreground'>
+              <h3 className='text-sm font-medium'>Error:</h3>
+              <p>{generationError.message}</p>
+            </div>
+          )}
         </>
-      )}
-      {generationError && (
-        <div className='mt-4 p-4 bg-red-50 rounded-lg border border-red-200 shadow-sm text-red-700'>
-          <h3 className='text-sm font-medium'>Error:</h3>
-          <p>{generationError.message}</p>
-        </div>
-      )}
-      {generatedData && (
-        <div className='mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200 shadow-sm'>
-          <h3 className='text-sm font-medium text-gray-900 mb-2'>Generated Result:</h3>
-          <pre className='text-sm text-gray-700'>{JSON.stringify(generatedData, null, 2)}</pre>
-        </div>
       )}
     </div>
   )

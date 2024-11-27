@@ -8,6 +8,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { cn } from '@/lib/utils'
 import { DialogDescription, DialogTitle } from '@radix-ui/react-dialog'
 import { Check } from 'lucide-react'
+import { AnimatePresence, motion } from 'framer-motion'
 
 const baseTypeDescriptions: { [key: string]: string } = {
   array: 'List of repeating items',
@@ -48,27 +49,73 @@ const TypeSelectorDialog: React.FC<TypeSelectorDialogProps> = ({ onSelect, selec
     setOpen(false)
   }
 
+  const containerVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.3,
+        staggerChildren: 0.1,
+      },
+    },
+    exit: {
+      opacity: 0,
+      y: -20,
+      transition: { duration: 0.2 },
+    },
+  }
+
+  const itemVariants = {
+    hidden: { opacity: 0, x: -20 },
+    visible: {
+      opacity: 1,
+      x: 0,
+      transition: { duration: 0.2 },
+    },
+  }
+
+  const methodVariants = {
+    hidden: { opacity: 0, scale: 0.95 },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      transition: { duration: 0.2 },
+    },
+  }
+
   const renderMethodContent = () => {
     if (!selectedCategory) {
-      return <div className='text-center text-muted-foreground py-8'>Select a category from the left to view available options</div>
+      return (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className='text-center text-muted-foreground py-8'>
+          Select a category from the left to view available options
+        </motion.div>
+      )
     }
 
     if (baseTypes.includes(selectedCategory)) {
       return (
-        <Button
-          variant='ghost'
-          className={cn('w-full flex flex-col items-start p-3 h-auto hover:bg-muted relative', selectedValue === selectedCategory && 'bg-muted font-medium')}
-          onClick={() => handleSelect(selectedCategory)}
-        >
-          {' '}
-          <div className='flex justify-between w-full'>
-            {selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1)}
-            {selectedValue === selectedCategory && <Check className='ml-2 h-4 w-4' />}
-          </div>
-          {(selectedCategory.toLowerCase() === 'array' || selectedCategory.toLowerCase() === 'object') && (
-            <span className='text-sm text-muted-foreground whitespace-normal text-left'>{baseTypeDetailedDescriptions[selectedCategory.toLowerCase()]}</span>
-          )}
-        </Button>
+        <motion.div variants={methodVariants} initial='hidden' animate='visible'>
+          <Button
+            variant='ghost'
+            className={cn('w-full flex flex-col items-start p-3 h-auto hover:bg-muted relative', selectedValue === selectedCategory && 'bg-muted font-medium')}
+            onClick={() => handleSelect(selectedCategory)}
+          >
+            <div className='flex justify-between w-full'>
+              {selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1)}
+              <AnimatePresence>
+                {selectedValue === selectedCategory && (
+                  <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}>
+                    <Check className='ml-2 h-4 w-4' />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+            {(selectedCategory.toLowerCase() === 'array' || selectedCategory.toLowerCase() === 'object') && (
+              <span className='text-sm text-muted-foreground whitespace-normal text-left'>{baseTypeDetailedDescriptions[selectedCategory.toLowerCase()]}</span>
+            )}
+          </Button>
+        </motion.div>
       )
     }
 
@@ -76,32 +123,40 @@ const TypeSelectorDialog: React.FC<TypeSelectorDialogProps> = ({ onSelect, selec
     if (!categoryMethods) return null
 
     return (
-      <div className='grid gap-2'>
+      <motion.div variants={containerVariants} initial='hidden' animate='visible' className='grid gap-2'>
         {categoryMethods.map((method) => (
-          <Button
-            key={method.method}
-            variant='ghost'
-            className={cn('w-full flex flex-col items-start p-3 h-auto hover:bg-muted relative', selectedValue === method.method && 'bg-muted font-medium')}
-            onClick={() => handleSelect(method.method)}
-          >
-            <div className='flex justify-between w-full'>
-              <span className='font-medium'>{method.method.split('.')[1]}</span>
-              {selectedValue === method.method && <Check className='ml-2 h-4 w-4' />}
-            </div>
-            <span className='text-sm text-muted-foreground whitespace-normal text-left'>{method.description}</span>
-            {method.parameters && (
-              <span className='text-xs text-muted-foreground whitespace-normal text-left mt-1'>
-                Parameters: <code className='bg-muted px-1 py-0.5 rounded'>{method.parameters}</code>
-              </span>
-            )}
-            {method.example && (
-              <span className='text-xs text-muted-foreground whitespace-normal text-left mt-1'>
-                Example: <code className='bg-muted px-1 py-0.5 rounded'>{method.example}</code>
-              </span>
-            )}
-          </Button>
+          <motion.div key={method.method} variants={itemVariants}>
+            <Button
+              key={method.method}
+              variant='ghost'
+              className={cn('w-full flex flex-col items-start p-3 h-auto hover:bg-muted relative', selectedValue === method.method && 'bg-muted font-medium')}
+              onClick={() => handleSelect(method.method)}
+            >
+              <div className='flex justify-between w-full'>
+                <span className='font-medium'>{method.method.split('.')[1]}</span>
+                <AnimatePresence>
+                  {selectedValue === method.method && (
+                    <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}>
+                      <Check className='ml-2 h-4 w-4' />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+              <span className='text-sm text-muted-foreground whitespace-normal text-left'>{method.description}</span>
+              {method.parameters && (
+                <span className='text-xs text-muted-foreground whitespace-normal text-left mt-1'>
+                  Parameters: <code className='bg-muted px-1 py-0.5 rounded'>{method.parameters}</code>
+                </span>
+              )}
+              {method.example && (
+                <span className='text-xs text-muted-foreground whitespace-normal text-left mt-1'>
+                  Example: <code className='bg-muted px-1 py-0.5 rounded'>{method.example}</code>
+                </span>
+              )}
+            </Button>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
     )
   }
 
@@ -113,9 +168,14 @@ const TypeSelectorDialog: React.FC<TypeSelectorDialogProps> = ({ onSelect, selec
         </Button>
       </DialogTrigger>
       <DialogContent className='max-w-5xl'>
-        <div className='flex flex-col md:flex-row h-[650px] md:h-[600px] gap-4'>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          className='flex flex-col md:flex-row h-[650px] md:h-[600px] gap-4'
+        >
           {/* Left Panel - Categories */}
-          <div className='w-full md:w-1/3 flex flex-col h-1/2 md:h-full'>
+          <motion.div variants={containerVariants} initial='hidden' animate='visible' className='w-full md:w-1/3 flex flex-col h-1/2 md:h-full'>
             <div className='mb-4'>
               <DialogTitle className='text-lg font-semibold'>Categories</DialogTitle>
               <DialogDescription className='text-sm text-muted-foreground'>Select a category to view options</DialogDescription>
@@ -152,10 +212,10 @@ const TypeSelectorDialog: React.FC<TypeSelectorDialogProps> = ({ onSelect, selec
                 ))}
               </div>
             </ScrollArea>
-          </div>
+          </motion.div>
 
           {/* Right Panel - Methods */}
-          <div className='w-full md:w-2/3 flex flex-col h-1/2 md:h-full'>
+          <motion.div variants={containerVariants} initial='hidden' animate='visible' className='w-full md:w-2/3 flex flex-col h-1/2 md:h-full'>
             <div className='mb-4'>
               <DialogTitle className='text-lg font-semibold'>Available Methods</DialogTitle>
               <DialogDescription className='text-sm text-muted-foreground mb-2'>Search and select methods to generate data</DialogDescription>
@@ -164,8 +224,8 @@ const TypeSelectorDialog: React.FC<TypeSelectorDialogProps> = ({ onSelect, selec
             <ScrollArea className='flex-1 border rounded-md overflow-auto'>
               <div className='p-4'>{renderMethodContent()}</div>
             </ScrollArea>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
         <DialogFooter>
           <Button className='w-full md:w-52 mt-2' variant='outline' onClick={() => setOpen(false)}>
             Close

@@ -8,6 +8,7 @@ import { TreeDataNode, TreeViewOptions, NodeDataType, FakerFunction } from '@/ty
 import { Button } from '@/components/ui/button'
 import { hasChildren } from '@/lib/tree'
 import { cn } from '@/lib/utils'
+import { AnimatePresence, motion } from 'framer-motion'
 
 interface TreeNodeProps {
   node: TreeDataNode
@@ -103,24 +104,36 @@ const TreeNode: React.FC<TreeNodeProps> = memo(
     const showChildren = hasChildren(node) && isExpanded && node.children && node.children.length > 0
 
     return (
-      <li
+      <motion.li
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -10 }}
+        transition={{ duration: 0.2 }}
         className={cn(
           'relative',
-          level > 0 && 'ml-2 sm:ml-5 border-l border-gray-200',
+          level > 0 && 'ml-2 sm:ml-5 border-l border-border',
           isLast && level > 0 && 'border-l-0',
-          level > 0 && 'before:absolute before:top-[16px] before:left-0 before:w-3 sm:before:w-5 before:h-px before:bg-gray-200',
-          !isLast && level > 0 && 'after:absolute after:top-[16px] after:left-[-1px] after:w-px after:h-full after:bg-gray-200',
+          level > 0 && node.dataType === 'object' && 'before:absolute before:top-[16px] before:left-0 before:w-3 sm:before:w-2 before:h-px before:bg-border',
+          node.dataType !== 'object' && 'before:absolute before:top-[16px] before:left-0 before:w-3 sm:before:w-5 before:h-px before:bg-border',
+          !isLast && level > 0 && 'after:absolute after:top-[16px] after:left-[-1px] after:w-px after:h-full after:bg-border',
         )}
         role='treeitem'
         aria-expanded={hasChildren(node) ? isExpanded : undefined}
         id={nodeId}
       >
         <div className='flex items-start py-2 group'>
-          <Button variant='ghost' onClick={toggleExpand} className='flex-shrink-0 w-6 h-6 mt-1 flex items-center justify-center rounded-md transition-colors'>
+          <Button
+            variant='ghost'
+            onClick={toggleExpand}
+            className={cn('flex-shrink-0 w-6 h-6 hover:bg-transparent flex items-center justify-center rounded-md transition-colors', {
+              'cursor-default opacity-50': !hasChildren(node),
+              'hover:bg-gray-100': hasChildren(node),
+            })}
+          >
             {hasChildren(node) && <ChevronRightIcon className={cn('w-4 h-4 transition-transform duration-200 ease-in-out', isExpanded && 'rotate-90')} />}
           </Button>
 
-          <div className='flex-1 min-w-0 px-2' onClick={handleSelect}>
+          <motion.div className='flex-1 min-w-0 px-2' onClick={handleSelect} whileHover={{ x: 2 }} transition={{ duration: 0.2 }}>
             {renderNode ? (
               renderNode(node, handleNodeLabelChange)
             ) : (
@@ -133,7 +146,7 @@ const TreeNode: React.FC<TreeNodeProps> = memo(
                 handleCountChange={handleCountChange}
               />
             )}
-          </div>
+          </motion.div>
 
           <TreeNodeActions
             node={node}
@@ -146,43 +159,73 @@ const TreeNode: React.FC<TreeNodeProps> = memo(
           />
         </div>
 
-        {hasChildren(node) && node.children && showChildren && (
-          <ul
-            role='group'
-            aria-labelledby={nodeId}
-            className={cn('transition-all duration-200 ease-in-out', showChildren ? 'opacity-100 max-h-[1000px]' : 'opacity-0 max-h-0 overflow-hidden')}
-          >
-            {node.children.map((child, index) => (
-              <TreeNode
-                key={child.id}
-                node={child}
-                level={level + 1}
-                isLast={index === (node.children?.length ?? 0) - 1}
-                handleLabelChange={handleLabelChange}
-                handleDataTypeChange={handleDataTypeChange}
-                handleFakerFunctionChange={handleFakerFunctionChange}
-                handleItemDataTypeChange={handleItemDataTypeChange}
-                handleCountChange={handleCountChange}
-                handleAddChild={handleAddChild}
-                handleDelete={handleDelete}
-                renderNode={renderNode}
-                allowAdd={allowAdd}
-                allowDelete={allowDelete}
-                defaultExpanded={defaultExpanded}
-                onNodeSelect={onNodeSelect}
-                onNodeExpand={onNodeExpand}
-                onNodeAdd={onNodeAdd}
-                onNodeDelete={onNodeDelete}
-                onNodeRename={onNodeRename}
-                canAddNode={canAddNode}
-                canDeleteNode={canDeleteNode}
-                canRenameNode={canRenameNode}
-                {...props}
-              />
-            ))}
-          </ul>
-        )}
-      </li>
+        <AnimatePresence>
+          {hasChildren(node) && node.children && showChildren && (
+            <motion.ul
+              initial={{ opacity: 0, height: 0 }}
+              animate={{
+                opacity: 1,
+                height: 'auto',
+                transition: {
+                  height: {
+                    duration: 0.3,
+                    ease: 'easeInOut',
+                  },
+                  opacity: {
+                    duration: 0.2,
+                    delay: 0.1,
+                  },
+                },
+              }}
+              exit={{
+                opacity: 0,
+                height: 0,
+                transition: {
+                  height: {
+                    duration: 0.3,
+                    ease: 'easeInOut',
+                  },
+                  opacity: {
+                    duration: 0.2,
+                  },
+                },
+              }}
+              role='group'
+              aria-labelledby={nodeId}
+              className='overflow-hidden'
+            >
+              {node.children.map((child, index) => (
+                <TreeNode
+                  key={child.id}
+                  node={child}
+                  level={level + 1}
+                  isLast={index === (node.children?.length ?? 0) - 1}
+                  handleLabelChange={handleLabelChange}
+                  handleDataTypeChange={handleDataTypeChange}
+                  handleFakerFunctionChange={handleFakerFunctionChange}
+                  handleItemDataTypeChange={handleItemDataTypeChange}
+                  handleCountChange={handleCountChange}
+                  handleAddChild={handleAddChild}
+                  handleDelete={handleDelete}
+                  renderNode={renderNode}
+                  allowAdd={allowAdd}
+                  allowDelete={allowDelete}
+                  defaultExpanded={defaultExpanded}
+                  onNodeSelect={onNodeSelect}
+                  onNodeExpand={onNodeExpand}
+                  onNodeAdd={onNodeAdd}
+                  onNodeDelete={onNodeDelete}
+                  onNodeRename={onNodeRename}
+                  canAddNode={canAddNode}
+                  canDeleteNode={canDeleteNode}
+                  canRenameNode={canRenameNode}
+                  {...props}
+                />
+              ))}
+            </motion.ul>
+          )}
+        </AnimatePresence>
+      </motion.li>
     )
   },
 )
