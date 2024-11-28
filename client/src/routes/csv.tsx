@@ -6,5 +6,5 @@ export const Route = createFileRoute('/csv')({
 })
 
 function RouteComponent() {
-  return 'Hello /csv!'
+  return 'Hello /csv2'
 }

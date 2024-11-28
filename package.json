@@ -8,13 +8,18 @@
     "format": "bunx prettier --write \"server/**/*.ts\"",
     "docker:build": "docker-compose build",
     "docker:up": "docker-compose up",
-    "docker:down": "docker-compose down"
+    "docker:down": "docker-compose down",
+    "client:dev": "cd client && npm run dev",
+    "client:build": "cd client && npm run build",
+    "client:preview": "cd client && npm run preview",
+    "dev:all": "concurrently --kill-others \"bun run dev\" \"bun run client:dev\""
   },
   "dependencies": {
     "@hono/eslint-config": "^1.0.2",
     "@hono/zod-openapi": "^0.16.4",
     "@hono/zod-validator": "^0.2.2",
     "@scalar/hono-api-reference": "^0.5.161",
+    "concurrently": "^9.1.0",
     "csv-writer": "^1.6.0",
     "fuse.js": "^7.0.0",
     "hono": "^4.6.11",
