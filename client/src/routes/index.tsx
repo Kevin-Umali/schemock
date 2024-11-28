@@ -6,7 +6,7 @@ import { INITIAL_SCHEMA } from '@/constants'
 import { convertToSchema } from '@/lib/schema'
 import TreeView from '@/components/custom/tree-view'
 import { Button } from '@/components/ui/button'
-import { Braces, Check, Copy, Download, Loader2, Plus, Share2 } from 'lucide-react'
+import { Braces, Check, Copy, Loader2, Plus, Share2 } from 'lucide-react'
 import useCopyToClipboard from '@/hooks/useCopyToClipboard'
 import { cn } from '@/lib/utils'
 import LZString from 'lz-string'
@@ -17,7 +17,7 @@ import Spinner from '@/components/custom/spinner'
 import SchemaTabs, { type GenericTab } from '@/components/custom/schema-tabs'
 import { useGenerateJSON } from '@/api/mutations'
 import { type GenerateBodyJSON } from '@server/schema/generate.schema'
-import AnimatedJSON from '@/components/custom/animated-json'
+import GeneratedData from '@/components/custom/generated-data'
 
 const generateSearchSchema = z.object({
   s: fallback(z.string(), '').optional().default(''),
@@ -298,77 +298,10 @@ function Index() {
               </div>
             </div>
           </div>
-
           {/* SchemaTabs Component */}
           <SchemaTabs tabs={tabs} defaultTab='schemaBuilder' />
-
           {/* Generated Data */}
-          <div className='mt-6 border rounded-lg p-4 shadow-sm bg-card'>
-            {isGenerating ? (
-              <div className='flex items-center justify-center gap-2 p-20'>
-                <Spinner show text='Generating JSON...' />
-              </div>
-            ) : generatedData ? (
-              <div>
-                <div className='flex justify-between items-center mb-4'>
-                  <h3 className='text-lg font-semibold text-card-foreground'>Generated Result</h3>
-                  <div className='flex gap-2'>
-                    {/* Copy Button */}
-                    <Button
-                      variant='outline'
-                      size='sm'
-                      onClick={async () => {
-                        await copy(JSON.stringify(generatedData, null, 2))
-                        // Optionally, set a timeout to reset copiedText after a delay
-                      }}
-                      className='flex items-center gap-2 relative w-24 justify-center'
-                    >
-                      <div className={cn('flex items-center gap-2', copiedText && 'text-emerald-500')}>
-                        {copiedText ? <Check className='w-4 h-4' /> : <Copy className='w-4 h-4' />}
-                        <span className='text-sm'>{copiedText ? 'Copied!' : 'Copy'}</span>
-                      </div>
-                    </Button>
-
-                    {/* Download Button */}
-                    <Button
-                      variant='outline'
-                      size='sm'
-                      onClick={() => {
-                        const blob = new Blob([JSON.stringify(generatedData, null, 2)], { type: 'application/json' })
-                        const url = URL.createObjectURL(blob)
-                        const link = document.createElement('a')
-                        link.href = url
-                        link.download = 'generated-schema.json'
-                        link.click()
-                        URL.revokeObjectURL(url)
-                      }}
-                      className='flex items-center gap-2'
-                    >
-                      <Download className='mr-1 h-4 w-4' />
-                      <span className='text-sm'>Download</span>
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Display Generated JSON */}
-                <AnimatedJSON
-                  data={generatedData}
-                  animate='characters' // or "characters" or "simple"
-                  className='rounded-md p-4 bg-input text-foreground overflow-auto'
-                />
-              </div>
-            ) : (
-              <p className='text-muted-foreground text-center p-20'>{`Build your schema and click the "Generate JSON" button to see the result.`}</p>
-            )}
-          </div>
-
-          {/* Handle Generation Errors */}
-          {generationError && (
-            <div className='mt-4 p-4 bg-destructive rounded-lg border border-destructive-foreground shadow-sm text-destructive-foreground'>
-              <h3 className='text-sm font-medium'>Error:</h3>
-              <p>{generationError.message}</p>
-            </div>
-          )}
+          <GeneratedData generatedData={generatedData} isGenerating={isGenerating} generationError={generationError} />
         </>
       )}
     </div>

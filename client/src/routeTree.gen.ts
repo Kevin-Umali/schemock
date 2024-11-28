@@ -13,6 +13,8 @@ import { createFileRoute } from '@tanstack/react-router'
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
+import { Route as TemplateImport } from './routes/template'
+import { Route as CsvImport } from './routes/csv'
 import { Route as IndexImport } from './routes/index'
 
 // Create Virtual Routes
@@ -34,6 +36,18 @@ const HelperLazyRoute = HelperLazyImport.update({
   getParentRoute: () => rootRoute,
 } as any).lazy(() => import('./routes/helper.lazy').then((d) => d.Route))
 
+const TemplateRoute = TemplateImport.update({
+  id: '/template',
+  path: '/template',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const CsvRoute = CsvImport.update({
+  id: '/csv',
+  path: '/csv',
+  getParentRoute: () => rootRoute,
+} as any)
+
 const IndexRoute = IndexImport.update({
   id: '/',
   path: '/',
@@ -49,6 +63,20 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexImport
+      parentRoute: typeof rootRoute
+    }
+    '/csv': {
+      id: '/csv'
+      path: '/csv'
+      fullPath: '/csv'
+      preLoaderRoute: typeof CsvImport
+      parentRoute: typeof rootRoute
+    }
+    '/template': {
+      id: '/template'
+      path: '/template'
+      fullPath: '/template'
+      preLoaderRoute: typeof TemplateImport
       parentRoute: typeof rootRoute
     }
     '/helper': {
@@ -72,12 +100,16 @@ declare module '@tanstack/react-router' {
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/csv': typeof CsvRoute
+  '/template': typeof TemplateRoute
   '/helper': typeof HelperLazyRoute
   '/mock': typeof MockLazyRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/csv': typeof CsvRoute
+  '/template': typeof TemplateRoute
   '/helper': typeof HelperLazyRoute
   '/mock': typeof MockLazyRoute
 }
@@ -85,27 +117,33 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
+  '/csv': typeof CsvRoute
+  '/template': typeof TemplateRoute
   '/helper': typeof HelperLazyRoute
   '/mock': typeof MockLazyRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/helper' | '/mock'
+  fullPaths: '/' | '/csv' | '/template' | '/helper' | '/mock'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/helper' | '/mock'
-  id: '__root__' | '/' | '/helper' | '/mock'
+  to: '/' | '/csv' | '/template' | '/helper' | '/mock'
+  id: '__root__' | '/' | '/csv' | '/template' | '/helper' | '/mock'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CsvRoute: typeof CsvRoute
+  TemplateRoute: typeof TemplateRoute
   HelperLazyRoute: typeof HelperLazyRoute
   MockLazyRoute: typeof MockLazyRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CsvRoute: CsvRoute,
+  TemplateRoute: TemplateRoute,
   HelperLazyRoute: HelperLazyRoute,
   MockLazyRoute: MockLazyRoute,
 }
@@ -121,12 +159,20 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
+        "/csv",
+        "/template",
         "/helper",
         "/mock"
       ]
     },
     "/": {
       "filePath": "index.tsx"
+    },
+    "/csv": {
+      "filePath": "csv.tsx"
+    },
+    "/template": {
+      "filePath": "template.tsx"
     },
     "/helper": {
       "filePath": "helper.lazy.tsx"
