@@ -37,7 +37,6 @@ const TreeView: React.FC<TreeViewOptions> = ({
   const handleDataTypeChange = useCallback(
     (id: string, dataType: NodeDataType) => {
       const updatedNodes = updateNodeInTree(nodes, id, (node) => {
-        // Create base properties
         const baseProps = {
           id: node.id,
           label: node.label,
@@ -45,7 +44,6 @@ const TreeView: React.FC<TreeViewOptions> = ({
           isRootNode: node.isRootNode,
         }
 
-        // Handle conversion to different types
         if (dataType === 'object') {
           return {
             ...baseProps,
@@ -54,15 +52,14 @@ const TreeView: React.FC<TreeViewOptions> = ({
         } else if (dataType === 'array') {
           return {
             ...baseProps,
-            itemDataType: 'object', // default to object
+            itemDataType: 'object',
             count: 1,
             children: [],
           }
         } else {
-          // For faker categories
           return {
             ...baseProps,
-            fakerFunction: undefined, // Reset faker function when type changes
+            fakerFunction: undefined,
           }
         }
       })
@@ -73,9 +70,9 @@ const TreeView: React.FC<TreeViewOptions> = ({
   )
 
   const handleFakerFunctionChange = useCallback(
-    (id: string, method: FakerFunction) => {
+    (id: string, method: FakerFunction, dataType: NodeDataType) => {
       const updatedNodes = updateNodeInTree(nodes, id, (node) => {
-        const updatedNode = { ...node, fakerFunction: method }
+        const updatedNode = { ...node, fakerFunction: method, ...(isArrayNode(node) ? { itemDataType: dataType } : { dataType }) }
         onNodeUpdate?.(updatedNode, 'fakerFunction', { previousMethod: node.fakerFunction })
         return updatedNode
       })

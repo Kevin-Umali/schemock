@@ -16,7 +16,7 @@ interface TreeNodeProps {
   isLast: boolean
   handleLabelChange: (id: string, label: string) => void
   handleDataTypeChange: (id: string, type: NodeDataType) => void
-  handleFakerFunctionChange: (id: string, method: FakerFunction) => void
+  handleFakerFunctionChange: (id: string, method: FakerFunction, type: NodeDataType) => void
   handleItemDataTypeChange: (id: string, type: NodeDataType) => void
   handleCountChange: (id: string, count: number) => void
   handleAddChild: (parentId: string) => void

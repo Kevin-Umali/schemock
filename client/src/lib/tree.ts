@@ -49,18 +49,25 @@ export const createNode = (parentId: string | null, dataType: NodeDataType = 'st
 }
 
 export const updateNodeInTree = (nodes: TreeDataNode[], nodeId: string, updater: (node: TreeDataNode) => TreeDataNode): TreeDataNode[] => {
-  return nodes.map((node) => {
+  let isUpdated = false
+  const updatedNodes = nodes.map((node) => {
     if (node.id === nodeId) {
+      isUpdated = true
       return updater(node)
     }
     if (hasChildren(node) && node.children) {
-      return {
-        ...node,
-        children: updateNodeInTree(node.children, nodeId, updater),
+      const updatedChildren = updateNodeInTree(node.children, nodeId, updater)
+      if (updatedChildren !== node.children) {
+        isUpdated = true
+        return {
+          ...node,
+          children: updatedChildren,
+        }
       }
     }
     return node
   })
+  return isUpdated ? updatedNodes : nodes
 }
 
 export const cleanupNodeLocale = (node: TreeDataNode): TreeDataNode => {

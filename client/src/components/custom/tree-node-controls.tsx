@@ -12,7 +12,7 @@ interface TreeNodeControlsProps {
   node: TreeDataNode
   handleLabelChange: (id: string, label: string) => void
   handleDataTypeChange: (id: string, type: NodeDataType) => void
-  handleFakerFunctionChange: (id: string, method: FakerFunction) => void
+  handleFakerFunctionChange: (id: string, method: FakerFunction, type: NodeDataType) => void
   handleItemDataTypeChange: (id: string, type: NodeDataType) => void
   handleCountChange: (id: string, count: number) => void
 }
@@ -36,8 +36,7 @@ const TreeNodeControls: React.FC<TreeNodeControlsProps> = ({
     } else {
       const category = fakerMethods.find((m) => m.items.some((item) => item.method === value))?.category
       if (category) {
-        handleDataTypeChange(node.id, category)
-        handleFakerFunctionChange(node.id, value)
+        handleFakerFunctionChange(node.id, value, category)
       }
     }
   }
@@ -48,8 +47,7 @@ const TreeNodeControls: React.FC<TreeNodeControlsProps> = ({
     } else {
       const category = fakerMethods.find((m) => m.items.some((item) => item.method === value))?.category
       if (category) {
-        handleItemDataTypeChange(node.id, category)
-        handleFakerFunctionChange(node.id, value)
+        handleFakerFunctionChange(node.id, value, category)
       }
     }
   }
