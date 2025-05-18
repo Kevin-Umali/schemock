@@ -1,6 +1,9 @@
 import { z } from '@hono/zod-openapi'
 import { commonFields, NestedBaseSchema } from './base.schema'
 
+/**
+ * Schema for the request body of the pagination endpoint
+ */
 export const MockBodyPaginationRequest = z
   .object({
     schema: NestedBaseSchema,
@@ -8,7 +11,7 @@ export const MockBodyPaginationRequest = z
   })
   .openapi({
     type: 'object',
-    description: 'Schema for generating paginated data.',
+    description: 'Schema for generating paginated mock data',
     example: {
       schema: {
         user: {
@@ -26,20 +29,34 @@ export const MockBodyPaginationRequest = z
     },
   })
 
+/**
+ * Schema for pagination query parameters
+ */
 export const MockQueryPaginationParams = z
   .object({
-    page: z.string().min(1).optional().default('1').openapi({ type: 'string' }),
-    limit: z.string().min(1).max(100).optional().default('10').openapi({ type: 'string' }),
-    sort: z.string().optional().openapi({ type: 'string', example: 'name:asc' }),
+    page: z.string().min(1).regex(/^\d+$/).transform(Number).pipe(z.number().int().positive()).optional().default('1').openapi({
+      type: 'string',
+      description: 'Page number (starts at 1)',
+      example: '1',
+    }),
+    limit: z.string().min(1).regex(/^\d+$/).transform(Number).pipe(z.number().int().min(1).max(100)).optional().default('10').openapi({
+      type: 'string',
+      description: 'Number of items per page (max 100)',
+      example: '10',
+    }),
+    sort: z
+      .string()
+      .regex(/^[\w.]+:(asc|desc)$/)
+      .optional()
+      .openapi({
+        type: 'string',
+        description: 'Sort field and direction in format field:direction',
+        example: 'name:asc',
+      }),
   })
   .openapi({
     type: 'object',
-    description: 'Query parameters for pagination.',
-    example: {
-      page: '1',
-      limit: '10',
-      sort: 'name:asc',
-    },
+    description: 'Query parameters for pagination control',
   })
 
 export type MockBodyPagination = z.infer<typeof MockBodyPaginationRequest>

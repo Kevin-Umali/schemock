@@ -1,7 +1,7 @@
 import { HTTPException } from 'hono/http-exception'
-import { generateFakeData, generateFakeDataFromTemplate } from '../../lib/fake-data-generator'
 import { createObjectCsvStringifier } from 'csv-writer'
-import { generateMultiRowInsertStatement, generateSingleRowInsertStatements } from '../../lib/utils'
+import { generateFakeData, generateFakeDataFromTemplate } from '../../services/faker.service'
+import { generateMultiRowInsertStatement, generateSingleRowInsertStatements } from '../../utils/sql'
 import type { HonoRouteHandler } from '../../lib/types'
 import type { CSVRoute, JSONRoute, SQLRoute, TemplateRoute } from './generate.route'
 

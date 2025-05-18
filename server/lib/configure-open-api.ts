@@ -1,16 +1,19 @@
-import packageJSON from '../../package.json' with { type: 'json' }
 import { apiReference } from '@scalar/hono-api-reference'
-
 import type { HonoOpenAPI } from './types'
 import { FakerMethods, Locales } from '../constant'
+import { config } from '../config'
 
+/**
+ * Configures OpenAPI documentation for the application
+ * @param app - Hono app instance
+ * @returns The app with OpenAPI configured
+ */
 const configureOpenAPI = (app: HonoOpenAPI) => {
   app.doc('/api/v1/doc', {
     info: {
-      title: 'Schemock API',
-      version: packageJSON.version,
-      description:
-        'Schemock is a schema-based data generator for APIs. It allows developers to generate mock data based on defined schemas, aiding in API development and testing.',
+      title: config.app.name,
+      version: config.app.version,
+      description: config.app.description,
       license: {
         name: 'MIT License',
         url: 'https://opensource.org/licenses/MIT',
@@ -20,7 +23,7 @@ const configureOpenAPI = (app: HonoOpenAPI) => {
     servers: [
       {
         url: '/',
-        description: 'Prefix for the generate route',
+        description: 'API server',
       },
     ],
     tags: [
@@ -66,7 +69,7 @@ const configureOpenAPI = (app: HonoOpenAPI) => {
     '/api/v1/ui',
     apiReference({
       theme: 'alternate',
-      pageTitle: 'Schemock API',
+      pageTitle: config.app.name,
       spec: {
         url: '/api/v1/doc',
       },
@@ -75,8 +78,8 @@ const configureOpenAPI = (app: HonoOpenAPI) => {
       showSidebar: true,
       searchHotKey: 'k',
       metaData: {
-        title: 'Schemock API',
-        description: 'Schemock API Documentation',
+        title: config.app.name,
+        description: `${config.app.name} Documentation`,
       },
       withDefaultFonts: true,
     }),

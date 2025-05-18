@@ -1,37 +1,59 @@
 import { HTTPException } from 'hono/http-exception'
-import { generateFakeData } from '../../lib/fake-data-generator'
+import { generateFakeData } from '../../services/faker.service'
 import type { HonoRouteHandler } from '../../lib/types'
-import { sortNestedData } from '../../lib/utils'
+import { sortNestedData } from '../../utils/sort'
 import type { PaginationRoute } from './mock.route'
 
+/**
+ * Handler for the pagination endpoint
+ * Generates paginated mock data based on the provided schema
+ */
 export const paginationHandler: HonoRouteHandler<PaginationRoute> = async (c) => {
+  // Get validated request data
   const { schema, count, locale } = c.req.valid('json')
   const { page, limit, sort } = c.req.valid('query')
 
+  // Validate schema
   if (!schema) {
     throw new HTTPException(400, {
       message: 'Invalid schema',
     })
   }
 
-  const pageInt = parseInt(page, 10)
-  const limitInt = parseInt(limit, 10)
+  // Calculate pagination indices
+  const pageNumber = typeof page === 'number' ? page : 1
+  const limitNumber = typeof limit === 'number' ? limit : 10
 
-  const startIndex = (pageInt - 1) * limitInt
-  const endIndex = Math.min(startIndex + limitInt, count)
+  const startIndex = (pageNumber - 1) * limitNumber
+  const endIndex = Math.min(startIndex + limitNumber, count)
 
+  // Return empty data if page is out of range
   if (startIndex >= count || startIndex < 0) {
-    return c.json({ data: [], page: pageInt, limit: limitInt, total: count })
+    return c.json({
+      data: [],
+      page: pageNumber,
+      limit: limitNumber,
+      total: count,
+    })
   }
 
+  // Calculate actual number of items to generate
   const actualLimit = endIndex - startIndex
 
-  let data = Array.from({ length: actualLimit }, () => generateFakeData(schema, locale))
+  // Generate mock data
+  let data = Array.from({ length: actualLimit }, () => generateFakeData(schema as any, locale))
 
+  // Apply sorting if requested
   if (sort) {
     const [sortField, sortOrder] = sort.split(':')
     data = sortNestedData(data, sortField, sortOrder)
   }
 
-  return c.json({ data, page: pageInt, limit: limitInt, total: count })
+  // Return paginated response
+  return c.json({
+    data,
+    page: pageNumber,
+    limit: limitNumber,
+    total: count,
+  })
 }

@@ -1,6 +1,9 @@
 import { z } from '@hono/zod-openapi'
-import { NestedBaseSchema, commonFields, BaseSchema } from './base.schema'
+import { NestedBaseSchema, BaseSchema, commonFields, TableNameSchema, MultiRowInsertSchema, TemplateSchema, CountSchema, LocaleSchema } from './base.schema'
 
+/**
+ * Schema for generating JSON data with complex nested structure
+ */
 export const GenerateBodyJSONRequest = z
   .object({
     schema: NestedBaseSchema,
@@ -8,7 +11,7 @@ export const GenerateBodyJSONRequest = z
   })
   .openapi({
     type: 'object',
-    description: 'Schema for generating fake data',
+    description: 'Schema for generating complex nested JSON data',
     example: {
       schema: {
         user: {
@@ -26,6 +29,9 @@ export const GenerateBodyJSONRequest = z
     },
   })
 
+/**
+ * Schema for generating CSV data with flat structure
+ */
 export const GenerateBodyCSVRequest = z
   .object({
     schema: BaseSchema,
@@ -33,7 +39,7 @@ export const GenerateBodyCSVRequest = z
   })
   .openapi({
     type: 'object',
-    description: 'Schema for generating CSV data.',
+    description: 'Schema for generating CSV data with flat structure',
     example: {
       schema: {
         name: 'person.firstName',
@@ -44,16 +50,19 @@ export const GenerateBodyCSVRequest = z
     },
   })
 
+/**
+ * Schema for generating SQL insert statements
+ */
 export const GenerateBodySQLRequest = z
   .object({
     schema: BaseSchema,
     ...commonFields,
-    tableName: z.string().min(1).openapi({ type: 'string' }),
-    multiRowInsert: z.boolean().optional().default(true).openapi({ type: 'boolean' }),
+    tableName: TableNameSchema,
+    multiRowInsert: MultiRowInsertSchema,
   })
   .openapi({
     type: 'object',
-    description: 'Schema for generating SQL statements.',
+    description: 'Schema for generating SQL insert statements',
     example: {
       schema: {
         name: 'person.firstName',
@@ -66,21 +75,18 @@ export const GenerateBodySQLRequest = z
     },
   })
 
+/**
+ * Schema for generating data from a template string
+ */
 export const GenerateBodyTemplateRequest = z
   .object({
-    template: z.string().openapi({
-      type: 'string',
-    }),
-    count: z.number().max(100).optional().openapi({
-      type: 'number',
-    }),
-    locale: z.string().optional().default('en').openapi({
-      type: 'string',
-    }),
+    template: TemplateSchema,
+    count: CountSchema,
+    locale: LocaleSchema,
   })
   .openapi({
     type: 'object',
-    description: 'Schema for generating data from a template.',
+    description: 'Schema for generating data from a template string with faker placeholders',
     example: {
       template: 'Hello, my name is {{person.firstName}} {{person.lastName}} and my email is {{internet.email}}.',
       count: 1,

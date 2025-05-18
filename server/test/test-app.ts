@@ -1,14 +1,17 @@
 import { OpenAPIHono } from '@hono/zod-openapi'
 import { HTTPException } from 'hono/http-exception'
 import { formatToReadableError } from '../utils/error-suggestion'
-import { applyMiddlewares } from '../middlewares'
+import { cors } from 'hono/cors'
+import { prettyJSON } from 'hono/pretty-json'
+import { secureHeaders } from 'hono/secure-headers'
+import { config } from '../config'
 
 /**
- * Creates a new Hono router with OpenAPI support
- * @returns Configured OpenAPIHono instance
+ * Creates a test version of the app without rate limiting and other middlewares
+ * that might cause issues in the test environment
  */
-const createRouter = () => {
-  return new OpenAPIHono({
+export const createTestApp = () => {
+  const app = new OpenAPIHono({
     strict: false,
     defaultHook: (result, c) => {
       if (!result.success) {
@@ -26,17 +29,11 @@ const createRouter = () => {
       }
     },
   })
-}
 
-/**
- * Creates a new Hono application with all middlewares and error handlers
- * @returns Configured Hono application
- */
-const createApp = () => {
-  const app = createRouter()
-
-  // Apply all global middlewares
-  applyMiddlewares(app)
+  // Apply only essential middlewares for testing
+  app.use(secureHeaders())
+  app.use(cors(config.cors))
+  app.use(prettyJSON())
 
   app.notFound((c) => {
     return c.json(
@@ -47,6 +44,7 @@ const createApp = () => {
       404,
     )
   })
+
   // Global error handler
   app.onError((err, c) => {
     if (err instanceof HTTPException) {
@@ -59,5 +57,3 @@ const createApp = () => {
 
   return app
 }
-
-export { createApp, createRouter }
