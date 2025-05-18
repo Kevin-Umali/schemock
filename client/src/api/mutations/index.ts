@@ -1,6 +1,12 @@
 import { GenerateBodyCSV, GenerateBodySQL, GenerateBodyTemplate, type GenerateBodyJSON } from '@server/schema/generate.schema'
 import { api } from '@/api/api'
 import { useMutation } from '@tanstack/react-query'
+import { useCustomMutation } from '@/hooks/useCustomMutation'
+
+// Define a custom RequestOptions interface that includes headers
+export interface RequestOptions {
+  headers?: Record<string, string>
+}
 
 const generateJSONbySchema = async (data: GenerateBodyJSON) => {
   const res = await api.generate.json.$post({
@@ -19,9 +25,10 @@ export const useGenerateJSON = () => {
   })
 }
 
-const generateCSVbySchema = async (data: GenerateBodyCSV) => {
+const generateCSVbySchema = async (data: GenerateBodyCSV, options?: RequestOptions) => {
   const res = await api.generate.csv.$post({
     json: data,
+    headers: options?.headers,
   })
 
   if (!res.ok) throw new Error('Server error')
@@ -36,9 +43,17 @@ export const useGenerateCSV = () => {
   })
 }
 
-const generateSQLbySchema = async (data: GenerateBodySQL) => {
+// Custom hook that supports headers
+export const useGenerateCSVWithOptions = () => {
+  return useCustomMutation(generateCSVbySchema, {
+    mutationKey: ['generate-csv'],
+  })
+}
+
+const generateSQLbySchema = async (data: GenerateBodySQL, options?: RequestOptions) => {
   const res = await api.generate.sql.$post({
     json: data,
+    headers: options?.headers,
   })
 
   if (!res.ok) throw new Error('Server error')
@@ -53,9 +68,17 @@ export const useGenerateSQL = () => {
   })
 }
 
-const generateTemplatebySchema = async (data: GenerateBodyTemplate) => {
+// Custom hook that supports headers
+export const useGenerateSQLWithOptions = () => {
+  return useCustomMutation(generateSQLbySchema, {
+    mutationKey: ['generate-sql'],
+  })
+}
+
+const generateTemplatebySchema = async (data: GenerateBodyTemplate, options?: RequestOptions) => {
   const res = await api.generate.template.$post({
     json: data,
+    headers: options?.headers,
   })
 
   if (!res.ok) throw new Error('Server error')
@@ -67,5 +90,12 @@ export const useGenerateTemplate = () => {
   return useMutation({
     mutationKey: ['generate-template'],
     mutationFn: generateTemplatebySchema,
+  })
+}
+
+// Custom hook that supports headers
+export const useGenerateTemplateWithOptions = () => {
+  return useCustomMutation(generateTemplatebySchema, {
+    mutationKey: ['generate-template'],
   })
 }

@@ -12,8 +12,9 @@ Schemock is a powerful API for generating mock data based on a specified schema.
 2. [Installation](#installation)
 3. [Usage](#usage)
 4. [Examples](#examples)
-5. [Deployment](#deployment)
-6. [Contributing](#contributing)
+5. [Code Quality](#code-quality)
+6. [Deployment](#deployment)
+7. [Contributing](#contributing)
 
 ## Features
 
@@ -211,6 +212,42 @@ Generates a complex object representing a company structure, including nested de
   "count": 1
 }
 ```
+
+## Code Quality
+
+Schemock follows industry best practices for code quality and maintainability:
+
+### Architecture
+
+- **Modular Design**: The codebase is organized into focused modules with clear responsibilities
+- **Separation of Concerns**: Business logic, data handling, and API endpoints are properly separated
+- **Type Safety**: Strict TypeScript typing throughout the codebase for better reliability
+
+### Coding Standards
+
+- **SonarQube Compliance**: Code follows SonarQube guidelines for maintainability and reliability
+- **Early Returns**: Complex conditionals are simplified using early returns and guard clauses
+- **Functional Patterns**: Leverages functional programming techniques like map/filter/reduce where appropriate
+- **Modern JavaScript**: Uses optional chaining, nullish coalescing, and other modern JS features
+
+### Complex Data Handling
+
+- **Object Flattening**: Ability to flatten nested objects for CSV and SQL generation
+- **Readable Formatting**: Complex objects are automatically formatted into human-readable paragraphs
+- **Consistent Output**: Ensures consistent output format across different data types
+- **Type Conversion**: Intelligent type conversion for different output formats
+
+### Testing
+
+- **Unit Tests**: Comprehensive test coverage for core functionality
+- **Integration Tests**: API endpoints are tested with realistic scenarios
+- **Test Utilities**: Dedicated test helpers and utilities for consistent testing
+
+### Documentation
+
+- **JSDoc Comments**: All functions and modules are documented with JSDoc comments
+- **API Documentation**: OpenAPI/Swagger documentation for all endpoints
+- **Code Examples**: Practical examples for common use cases
 
 ## Deployment
 

@@ -5,6 +5,29 @@ import { generateMultiRowInsertStatement, generateSingleRowInsertStatements } fr
 import type { HonoRouteHandler } from '../../lib/types'
 import type { CSVRoute, JSONRoute, SQLRoute, TemplateRoute } from './generate.route'
 
+/**
+ * Flattens a nested object into a flat object with dot notation keys
+ * @param obj - Object to flatten
+ * @param prefix - Prefix for keys
+ * @returns Flattened object
+ */
+const flattenObject = (obj: Record<string, any>, prefix: string = ''): Record<string, string> => {
+  return Object.keys(obj).reduce((acc: Record<string, string>, k: string) => {
+    const pre = prefix.length ? `${prefix}.` : ''
+
+    if (typeof obj[k] === 'object' && obj[k] !== null && !Array.isArray(obj[k])) {
+      Object.assign(acc, flattenObject(obj[k], `${pre}${k}`))
+    } else if (Array.isArray(obj[k])) {
+      // For arrays, convert to a string representation
+      acc[`${pre}${k}`] = JSON.stringify(obj[k])
+    } else {
+      acc[`${pre}${k}`] = String(obj[k])
+    }
+
+    return acc
+  }, {})
+}
+
 export const jsonHandler: HonoRouteHandler<JSONRoute> = async (c) => {
   const { schema, count, locale } = c.req.valid('json')
 
@@ -26,10 +49,26 @@ export const csvHandler: HonoRouteHandler<CSVRoute> = async (c) => {
       message: 'Invalid schema',
     })
   }
+
+  // Check if we should flatten complex objects
+  const shouldFlatten = c.req.header('X-Flatten-Objects') === 'true'
+
   // Cast schema to GenerateSchema type as it's already validated by Zod
-  const results = Array.from({ length: count ?? 1 }, () => generateFakeData(schema as any, locale))
+  let results = Array.from({ length: count ?? 1 }, () => generateFakeData(schema as any, locale))
+
+  // Flatten objects if requested
+  if (shouldFlatten) {
+    results = results.map((result) => flattenObject(result))
+  }
+
+  // Get all unique keys from all results to ensure consistent CSV columns
+  const allKeys = new Set<string>()
+  results.forEach((result) => {
+    Object.keys(result).forEach((key) => allKeys.add(key))
+  })
+
   const csvStringifier = createObjectCsvStringifier({
-    header: Object.keys(results[0]).map((key) => ({ id: key, title: key })),
+    header: Array.from(allKeys).map((key) => ({ id: key, title: key })),
   })
 
   const csvContent = csvStringifier.getHeaderString() + csvStringifier.stringifyRecords(results)
@@ -48,8 +87,18 @@ export const sqlHandler: HonoRouteHandler<SQLRoute> = async (c) => {
       message: 'Invalid schema',
     })
   }
+
+  // Check if we should flatten complex objects
+  const shouldFlatten = c.req.header('X-Flatten-Objects') === 'true'
+
   // Cast schema to GenerateSchema type as it's already validated by Zod
-  const results = Array.from({ length: count ?? 1 }, () => generateFakeData(schema as any, locale))
+  let results = Array.from({ length: count ?? 1 }, () => generateFakeData(schema as any, locale))
+
+  // Flatten objects if requested
+  if (shouldFlatten) {
+    results = results.map((result) => flattenObject(result))
+  }
+
   let insertStatements = ''
   if (multiRowInsert) {
     insertStatements = generateMultiRowInsertStatement(results, tableName)

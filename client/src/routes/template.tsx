@@ -11,13 +11,17 @@ import { Share2, Loader2, Braces, Check, Copy } from 'lucide-react'
 import LZString from 'lz-string'
 import { useState, useCallback } from 'react'
 import { z } from 'zod'
-import { useGenerateTemplate } from '@/api/mutations'
-import { type GenerateBodyTemplate } from '@server/schema/generate.schema'
+import { useGenerateTemplateWithOptions } from '@/api/mutations'
+import { type GenerateLocale } from '@server/schema/generate.schema'
+import { Switch } from '@/components/ui/switch'
+import { Label } from '@/components/ui/label'
+import { createFormatHeaders } from '@/lib/headers'
 
 const templateSearchSchema = z.object({
   t: fallback(z.string(), '').optional().default(''),
   c: fallback(z.number().min(1).max(100), 1).optional().default(1),
   l: fallback(z.string(), 'en').optional().default('en'),
+  f: fallback(z.boolean(), true).optional().default(true), // format objects as paragraphs
 })
 
 export const Route = createFileRoute('/template')({
@@ -33,7 +37,7 @@ export const Route = createFileRoute('/template')({
 })
 
 function Template() {
-  const { t: compressedTemplate, c: count, l: locale } = Route.useSearch()
+  const { t: compressedTemplate, c: count, l: locale, f: formatObjects } = Route.useSearch()
   const isRouteLoading = useRouterState().isLoading
   const { locales, fakerMethods } = Route.useRouteContext()
 
@@ -55,7 +59,7 @@ function Template() {
   const [isDirty, setIsDirty] = useState(false)
   const [generatedResults, setGeneratedResults] = useState<string[]>([])
 
-  const { mutate: generateTemplate, isPending: isGenerating } = useGenerateTemplate()
+  const { mutate: generateTemplate, isPending: isGenerating } = useGenerateTemplateWithOptions()
 
   const setCount = useCallback(
     (value: number) => {
@@ -76,6 +80,19 @@ function Template() {
         search: (prev) => ({
           ...prev,
           l: value,
+        }),
+        replace: true,
+      })
+    },
+    [navigate],
+  )
+
+  const setFormatObjects = useCallback(
+    (value: boolean) => {
+      navigate({
+        search: (prev) => ({
+          ...prev,
+          f: value,
         }),
         replace: true,
       })
@@ -114,19 +131,23 @@ function Template() {
   const handleGenerateTemplate = useCallback(() => {
     if (!templateContent) return
 
+    // Create headers for formatting objects
+    const headers = createFormatHeaders(formatObjects)
+
     generateTemplate(
       {
         template: templateContent,
         count,
-        locale,
-      } as GenerateBodyTemplate,
+        locale: locale as GenerateLocale,
+        headers,
+      },
       {
         onSuccess: (data) => {
           setGeneratedResults(data)
         },
       },
     )
-  }, [count, generateTemplate, locale, templateContent])
+  }, [count, generateTemplate, locale, templateContent, formatObjects])
 
   const handleCopyResult = useCallback(
     async (result: string) => {
@@ -183,6 +204,16 @@ function Template() {
                 </Select>
               </div>
 
+              {/* Format Objects Toggle */}
+              <div className='flex items-center gap-2'>
+                <div className='flex items-center space-x-2'>
+                  <Switch id='format-objects' checked={formatObjects} onCheckedChange={setFormatObjects} />
+                  <Label htmlFor='format-objects' className='text-sm font-medium text-gray-700'>
+                    Format objects as paragraphs
+                  </Label>
+                </div>
+              </div>
+
               {/* Action Buttons */}
               <div className='ml-auto flex items-center gap-2'>
                 <Button onClick={handleShare} variant='outline' className='transition-all duration-200 ease-in-out hover:shadow-md'>
@@ -192,7 +223,7 @@ function Template() {
                 <Button
                   onClick={handleGenerateTemplate}
                   variant='default'
-                  disabled={isGenerating ?? (false || templateContent === '')}
+                  disabled={Boolean(isGenerating) || templateContent === ''}
                   className={cn('transition-all hover:shadow-md', isGenerating && 'opacity-70')}
                 >
                   {isGenerating ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <Braces className='mr-2 h-4 w-4' />}

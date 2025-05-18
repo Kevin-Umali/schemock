@@ -9,16 +9,21 @@ import { Braces, Check, Copy, Download, Loader2, Share2 } from 'lucide-react'
 import Spinner from '@/components/custom/spinner'
 import { cn } from '@/lib/utils'
 import useCopyToClipboard from '@/hooks/useCopyToClipboard'
-import { useGenerateCSV } from '@/api/mutations'
-import { type GenerateBodyCSV } from '@server/schema/generate.schema'
+import { useGenerateCSVWithOptions } from '@/api/mutations'
+import { type GenerateLocale } from '@server/schema/generate.schema'
 import { Textarea } from '@/components/ui/textarea'
 import SchemaBuilder from '@/components/custom/schema-builder'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+
+import { Switch } from '@/components/ui/switch'
+import { Label } from '@/components/ui/label'
+import { createFlattenHeaders } from '@/lib/headers'
 
 const csvSearchSchema = z.object({
   s: fallback(z.string(), '').optional().default(''),
   c: fallback(z.number().min(1).max(100), 1).optional().default(1),
   l: fallback(z.string(), 'en').optional().default('en'),
+  f: fallback(z.boolean(), false).optional().default(false), // flatten complex objects
 })
 
 export const Route = createFileRoute('/csv')({
@@ -34,7 +39,7 @@ export const Route = createFileRoute('/csv')({
 })
 
 function CSV() {
-  const { s: compressedSchema, c: count, l: locale } = Route.useSearch()
+  const { s: compressedSchema, c: count, l: locale, f: flattenObjects } = Route.useSearch()
   const isRouteLoading = useRouterState().isLoading
   const { locales, fakerMethods } = Route.useRouteContext()
 
@@ -57,7 +62,7 @@ function CSV() {
     }
   })
 
-  const { mutate: generateCSV, data: generatedCSV, error: generationError, isPending: isGenerating } = useGenerateCSV()
+  const { mutate: generateCSV, data: generatedCSV, error: generationError, isPending: isGenerating } = useGenerateCSVWithOptions()
 
   const setCount = useCallback(
     (value: number) => {
@@ -78,6 +83,19 @@ function CSV() {
         search: (prev) => ({
           ...prev,
           l: value,
+        }),
+        replace: true,
+      })
+    },
+    [navigate],
+  )
+
+  const setFlattenObjects = useCallback(
+    (value: boolean) => {
+      navigate({
+        search: (prev) => ({
+          ...prev,
+          f: value,
         }),
         replace: true,
       })
@@ -114,15 +132,20 @@ function CSV() {
   const handleGenerateCSV = useCallback(() => {
     try {
       const schema = schemaMode === 'json' ? JSON.parse(schemaInput) : schemaObject
+
+      // Create headers for flattening objects
+      const headers = createFlattenHeaders(flattenObjects)
+
       generateCSV({
         schema,
         count,
-        locale,
-      } as GenerateBodyCSV)
+        locale: locale as GenerateLocale,
+        headers,
+      })
     } catch (error) {
       setSchemaError('Invalid JSON schema')
     }
-  }, [generateCSV, schemaInput, schemaObject, schemaMode, count, locale])
+  }, [generateCSV, schemaInput, schemaObject, schemaMode, count, locale, flattenObjects])
 
   const handleCopy = useCallback(async () => {
     if (generatedCSV) {
@@ -207,6 +230,16 @@ function CSV() {
                     </SelectGroup>
                   </SelectContent>
                 </Select>
+              </div>
+
+              {/* Flatten Objects Toggle */}
+              <div className='flex items-center gap-2'>
+                <div className='flex items-center space-x-2'>
+                  <Switch id='flatten-objects' checked={flattenObjects} onCheckedChange={setFlattenObjects} />
+                  <Label htmlFor='flatten-objects' className='text-sm font-medium text-gray-700'>
+                    Flatten complex objects
+                  </Label>
+                </div>
               </div>
 
               {/* Action Buttons */}

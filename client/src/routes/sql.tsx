@@ -11,11 +11,13 @@ import { Braces, Check, Copy, Loader2, Share2 } from 'lucide-react'
 import Spinner from '@/components/custom/spinner'
 import { cn } from '@/lib/utils'
 import useCopyToClipboard from '@/hooks/useCopyToClipboard'
-import { useGenerateSQL } from '@/api/mutations'
-import { type GenerateBodySQL } from '@server/schema/generate.schema'
+import { useGenerateSQLWithOptions } from '@/api/mutations'
+import { type GenerateLocale } from '@server/schema/generate.schema'
 import { Textarea } from '@/components/ui/textarea'
 import SchemaBuilder from '@/components/custom/schema-builder'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Switch } from '@/components/ui/switch'
+import { createFlattenHeaders } from '@/lib/headers'
 
 const sqlSearchSchema = z.object({
   s: fallback(z.string(), '').optional().default(''),
@@ -23,6 +25,7 @@ const sqlSearchSchema = z.object({
   l: fallback(z.string(), 'en').optional().default('en'),
   t: fallback(z.string(), 'users').optional().default('users'),
   m: fallback(z.boolean(), false).optional().default(false),
+  f: fallback(z.boolean(), false).optional().default(false), // flatten complex objects
 })
 
 export const Route = createFileRoute('/sql')({
@@ -38,7 +41,7 @@ export const Route = createFileRoute('/sql')({
 })
 
 function SQL() {
-  const { s: compressedSchema, c: count, l: locale, t: tableName, m: multiRowInsert } = Route.useSearch()
+  const { s: compressedSchema, c: count, l: locale, t: tableName, m: multiRowInsert, f: flattenObjects } = Route.useSearch()
   const isRouteLoading = useRouterState().isLoading
   const { locales, fakerMethods } = Route.useRouteContext()
 
@@ -61,7 +64,7 @@ function SQL() {
     }
   })
 
-  const { mutate: generateSQL, data: generatedSQL, error: generationError, isPending: isGenerating } = useGenerateSQL()
+  const { mutate: generateSQL, data: generatedSQL, error: generationError, isPending: isGenerating } = useGenerateSQLWithOptions()
 
   const setCount = useCallback(
     (value: number) => {
@@ -115,6 +118,19 @@ function SQL() {
     [navigate],
   )
 
+  const setFlattenObjects = useCallback(
+    (value: boolean) => {
+      navigate({
+        search: (prev) => ({
+          ...prev,
+          f: value,
+        }),
+        replace: true,
+      })
+    },
+    [navigate],
+  )
+
   const handleCountChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const value = parseInt(e.target.value)
@@ -151,17 +167,22 @@ function SQL() {
   const handleGenerateSQL = useCallback(() => {
     try {
       const schema = schemaMode === 'json' ? JSON.parse(schemaInput) : schemaObject
+
+      // Create headers for flattening objects
+      const headers = createFlattenHeaders(flattenObjects)
+
       generateSQL({
         schema,
         count,
-        locale,
+        locale: locale as GenerateLocale,
         tableName,
         multiRowInsert,
-      } as GenerateBodySQL)
+        headers,
+      })
     } catch (error) {
       setSchemaError('Invalid JSON schema')
     }
-  }, [generateSQL, schemaInput, schemaObject, schemaMode, count, locale, tableName, multiRowInsert])
+  }, [generateSQL, schemaInput, schemaObject, schemaMode, count, locale, tableName, multiRowInsert, flattenObjects])
 
   const handleCopy = useCallback(async () => {
     if (generatedSQL) {
@@ -254,6 +275,16 @@ function SQL() {
                 <Label htmlFor='multiRowInsert' className='text-sm font-medium text-gray-700'>
                   Multi-row Insert
                 </Label>
+              </div>
+
+              {/* Flatten Objects Toggle */}
+              <div className='flex items-center gap-2'>
+                <div className='flex items-center space-x-2'>
+                  <Switch id='flatten-objects' checked={flattenObjects} onCheckedChange={setFlattenObjects} />
+                  <Label htmlFor='flatten-objects' className='text-sm font-medium text-gray-700'>
+                    Flatten complex objects
+                  </Label>
+                </div>
               </div>
 
               {/* Action Buttons */}
