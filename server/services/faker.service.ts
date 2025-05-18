@@ -22,13 +22,7 @@ const CustomFakerFunctions: Record<string, (...args: any[]) => any> = {
  * @returns Boolean indicating if the value is a schema array
  */
 const isSchemaArray = (value: any): value is BaseSchema => {
-  return (
-    typeof value === 'object' &&
-    value !== null &&
-    !Array.isArray(value) &&
-    !(value instanceof Date) &&
-    ('count' in value || 'items' in value)
-  )
+  return typeof value === 'object' && value !== null && !Array.isArray(value) && !(value instanceof Date) && ('count' in value || 'items' in value)
 }
 
 /**
@@ -38,7 +32,7 @@ const isSchemaArray = (value: any): value is BaseSchema => {
  * @param args - Arguments to pass to the function
  * @returns The function or undefined
  */
-const getNestedFunction = (obj: Record<string, any>, path: string, args: any[]): Function | undefined => {
+const getNestedFunction = (obj: Record<string, any>, path: string, _args: any[]): Function | undefined => {
   const parts = path.split('.')
   let current = obj
 
@@ -73,7 +67,7 @@ const handleStringSchema = (value: string, fakerInstance: Faker): any => {
       if (argsMatch && argsMatch[1]) {
         // Parse arguments - this is a simple implementation
         // Could be enhanced to handle more complex argument parsing
-        args = argsMatch[1].split(',').map(arg => {
+        args = argsMatch[1].split(',').map((arg) => {
           arg = arg.trim()
           // Handle numbers
           if (!isNaN(Number(arg))) {
@@ -85,13 +79,12 @@ const handleStringSchema = (value: string, fakerInstance: Faker): any => {
           // Handle null
           if (arg === 'null') return null
           // Handle strings (remove quotes)
-          if ((arg.startsWith('"') && arg.endsWith('"')) || 
-              (arg.startsWith("'") && arg.endsWith("'"))) {
+          if ((arg.startsWith('"') && arg.endsWith('"')) || (arg.startsWith("'") && arg.endsWith("'"))) {
             return arg.slice(1, -1)
           }
           return arg
         })
-        
+
         // Remove arguments from the value
         value = value.substring(0, value.indexOf('('))
       }
@@ -179,14 +172,120 @@ export const generateFakeData = (schema: GenerateSchema, locale: string = 'en'):
  * @param locale - Locale to use
  * @returns Processed template string
  */
-export const generateFakeDataFromTemplate = (template: string, locale: string = 'en'): string => {
+/**
+ * Formats an object into a readable paragraph
+ * @param obj - Object to format
+ * @param prefix - Prefix for nested properties
+ * @returns Formatted paragraph string
+ */
+/**
+ * Formats an object into a readable paragraph
+ * @param obj - Object to format
+ * @param prefix - Prefix for nested properties
+ * @param depth - Current nesting depth
+ * @returns Formatted paragraph string
+ */
+const formatObjectToParagraph = (obj: any, prefix: string = '', depth: number = 0): string => {
+  if (obj === null || obj === undefined) {
+    return 'null'
+  }
+
+  if (typeof obj !== 'object') {
+    return String(obj)
+  }
+
+  // Handle arrays
+  if (Array.isArray(obj)) {
+    if (obj.length === 0) {
+      return 'empty list'
+    }
+
+    // For short arrays with primitive values, use a simple comma-separated list
+    if (obj.length <= 3 && obj.every((item) => typeof item !== 'object' || item === null)) {
+      return obj.map((item) => String(item)).join(', ')
+    }
+
+    // For longer or complex arrays, format each item on a new line
+    return obj
+      .map((item, index) => {
+        if (typeof item === 'object' && item !== null) {
+          return `Item ${index + 1}: ${formatObjectToParagraph(item, '', depth + 1)}`
+        }
+        return `Item ${index + 1}: ${String(item)}`
+      })
+      .join('; ')
+  }
+
+  // Handle objects
+  const parts: string[] = []
+  const entries = Object.entries(obj)
+
+  // If it's an empty object
+  if (entries.length === 0) {
+    return 'empty object'
+  }
+
+  for (const [key, value] of entries) {
+    const propertyName = prefix ? `${prefix}.${key}` : key
+
+    if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+      // For nested objects, format recursively
+      const nestedObj = formatObjectToParagraph(value, propertyName, depth + 1)
+      parts.push(`${key}: ${nestedObj}`)
+    } else if (Array.isArray(value)) {
+      // For arrays, list items
+      const arrayStr = formatObjectToParagraph(value, propertyName, depth + 1)
+      parts.push(`${key}: ${arrayStr}`)
+    } else {
+      // For primitive values
+      parts.push(`${key}: ${value}`)
+    }
+  }
+
+  // Use different separators based on depth and number of properties
+  if (depth > 0 && entries.length > 2) {
+    // For nested objects with many properties, use semicolons
+    return parts.join('; ')
+  } else if (depth === 0 && entries.length > 3) {
+    // For top-level objects with many properties, use periods to create sentences
+    return parts.join('. ')
+  } else {
+    // For simple objects, use commas
+    return parts.join(', ')
+  }
+}
+
+/**
+ * Generates fake data from a template string
+ * @param template - Template string with {{faker.method}} placeholders
+ * @param locale - Locale to use
+ * @param formatObjects - Whether to format objects as paragraphs
+ * @returns Processed template string
+ */
+export const generateFakeDataFromTemplate = (template: string, locale: string = 'en', formatObjects: boolean = true): string => {
   const fakerInstance = new Faker({
     locale: localeMap[locale] || localeMap['en'], // Default to 'en' if locale not found
   })
 
   return template.replace(/{{(.*?)}}/g, (_, key) => {
     try {
-      return String(handleStringSchema(key.trim(), fakerInstance))
+      const value = handleStringSchema(key.trim(), fakerInstance)
+
+      // Handle different types of values
+      if (value === null || value === undefined) {
+        return 'null'
+      }
+
+      if (typeof value === 'object') {
+        // Format objects as readable paragraphs or JSON strings
+        if (formatObjects) {
+          return formatObjectToParagraph(value)
+        } else {
+          return JSON.stringify(value)
+        }
+      }
+
+      return String(value)
     } catch (error) {
       console.error('Error generating data for template key:', key, error)
       return `Error: ${key}`

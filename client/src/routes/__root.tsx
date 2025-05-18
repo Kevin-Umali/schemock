@@ -66,6 +66,9 @@ export const Route = createRootRouteWithContext<RootRouteProps>()({
                   <ListItem title='CSV' href='/csv'>
                     Generate CSV files with custom data structures and faker methods.
                   </ListItem>
+                  <ListItem title='SQL' href='/sql'>
+                    Generate SQL insert statements with custom table and field definitions.
+                  </ListItem>
                   <ListItem title='Template' href='/template'>
                     Create custom templates with dynamic data generation.
                   </ListItem>

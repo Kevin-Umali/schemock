@@ -9,7 +9,8 @@ import { prettyJSON } from 'hono/pretty-json'
 import { enhancedLogger } from './custom-logger'
 import { extractClientIp } from '../utils/ip'
 import { config } from '../config'
-import { createCache } from './cache.middleware'
+// Import is used in the exports below
+// import { createCache } from './cache.middleware'
 
 /**
  * Applies all global middlewares to the app
@@ -19,13 +20,13 @@ import { createCache } from './cache.middleware'
 export const applyMiddlewares = (app: OpenAPIHono): OpenAPIHono => {
   // Security headers
   app.use(secureHeaders())
-  
+
   // Enhanced logging
   app.use(enhancedLogger({ level: 'debug' }))
-  
+
   // CORS
   app.use(cors(config.cors))
-  
+
   // Request timeout
   app.use(
     timeout(
@@ -36,7 +37,7 @@ export const applyMiddlewares = (app: OpenAPIHono): OpenAPIHono => {
         }),
     ),
   )
-  
+
   // Rate limiting
   app.use(
     rateLimiter({
@@ -46,10 +47,10 @@ export const applyMiddlewares = (app: OpenAPIHono): OpenAPIHono => {
       keyGenerator: (c) => extractClientIp(c),
     }),
   )
-  
+
   // Pretty JSON responses
   app.use(prettyJSON())
-  
+
   return app
 }
 

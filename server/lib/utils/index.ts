@@ -7,7 +7,15 @@ export const generateSingleRowInsertStatements = (results: Record<string, any>[]
     .map((record) => {
       const columns = Object.keys(record).join(", ");
       const values = Object.values(record)
-        .map((value) => `'${value}'`)
+        .map((value) => {
+          if (value === null || value === undefined) {
+            return 'NULL';
+          }
+          if (typeof value === 'object') {
+            return `'${JSON.stringify(value).replace(/'/g, "''")}'`;
+          }
+          return `'${String(value).replace(/'/g, "''")}'`;
+        })
         .join(", ");
       return `INSERT INTO ${tableName} (${columns}) VALUES (${values});`;
     })
@@ -16,11 +24,23 @@ export const generateSingleRowInsertStatements = (results: Record<string, any>[]
 
 // prettier-ignore
 export const generateMultiRowInsertStatement = (results: Record<string, any>[], tableName: string): string => {
+  if (results.length === 0) {
+    return '';
+  }
+
   const columns = Object.keys(results[0]).join(", ");
   const values = results
     .map((record, index) => {
       const formattedValues = Object.values(record)
-        .map((value) => `'${value}'`)
+        .map((value) => {
+          if (value === null || value === undefined) {
+            return 'NULL';
+          }
+          if (typeof value === 'object') {
+            return `'${JSON.stringify(value).replace(/'/g, "''")}'`;
+          }
+          return `'${String(value).replace(/'/g, "''")}'`;
+        })
         .join(", ");
       return index === 0 ? `(${formattedValues})` : `\t(${formattedValues})`;
     })

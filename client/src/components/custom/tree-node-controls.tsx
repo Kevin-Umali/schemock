@@ -25,16 +25,20 @@ const TreeNodeControls: React.FC<TreeNodeControlsProps> = ({
   handleItemDataTypeChange,
   handleCountChange,
 }) => {
-  const fakerMethods = useRouteContext({
+  // Get the faker methods from the route context
+  const routeContext = useRouteContext({
     from: '/',
-    select: (state) => state.fakerMethods,
+    select: (state) => state,
   })
+
+  // Extract the faker methods array from the context
+  const fakerMethods = routeContext.fakerMethods as any[]
 
   const handleTypeSelect = (value: string) => {
     if (BASE_TYPES.includes(value as BaseType)) {
       handleDataTypeChange(node.id, value as BaseType)
     } else {
-      const category = fakerMethods.find((m) => m.items.some((item) => item.method === value))?.category
+      const category = fakerMethods.find((m: any) => m.items.some((item: any) => item.method === value))?.category
       if (category) {
         handleFakerFunctionChange(node.id, value, category)
       }
@@ -45,7 +49,7 @@ const TreeNodeControls: React.FC<TreeNodeControlsProps> = ({
     if (BASE_TYPES.includes(value as BaseType)) {
       handleItemDataTypeChange(node.id, value as BaseType)
     } else {
-      const category = fakerMethods.find((m) => m.items.some((item) => item.method === value))?.category
+      const category = fakerMethods.find((m: any) => m.items.some((item: any) => item.method === value))?.category
       if (category) {
         handleFakerFunctionChange(node.id, value, category)
       }

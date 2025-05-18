@@ -7,14 +7,14 @@
 export const generateSingleRowInsertStatements = (results: Record<string, any>[], tableName: string): string => {
   return results
     .map((record) => {
-      const columns = Object.keys(record).join(", ");
+      const columns = Object.keys(record).join(', ')
       const values = Object.values(record)
         .map((value) => formatSqlValue(value))
-        .join(", ");
-      return `INSERT INTO ${tableName} (${columns}) VALUES (${values});`;
+        .join(', ')
+      return `INSERT INTO ${tableName} (${columns}) VALUES (${values});`
     })
-    .join("\n");
-};
+    .join('\n')
+}
 
 /**
  * Generates a multi-row SQL INSERT statement
@@ -24,20 +24,20 @@ export const generateSingleRowInsertStatements = (results: Record<string, any>[]
  */
 export const generateMultiRowInsertStatement = (results: Record<string, any>[], tableName: string): string => {
   if (results.length === 0) {
-    return '';
+    return ''
   }
-  
-  const columns = Object.keys(results[0]).join(", ");
+
+  const columns = Object.keys(results[0]).join(', ')
   const values = results
     .map((record, index) => {
       const formattedValues = Object.values(record)
         .map((value) => formatSqlValue(value))
-        .join(", ");
-      return index === 0 ? `(${formattedValues})` : `\t(${formattedValues})`;
+        .join(', ')
+      return index === 0 ? `(${formattedValues})` : `\t(${formattedValues})`
     })
-    .join(",\n");
-  return `INSERT INTO ${tableName} (${columns}) VALUES ${values};`;
-};
+    .join(',\n')
+  return `INSERT INTO ${tableName} (${columns}) VALUES ${values};`
+}
 
 /**
  * Formats a value for SQL insertion, adding quotes for strings
@@ -46,21 +46,26 @@ export const generateMultiRowInsertStatement = (results: Record<string, any>[], 
  */
 const formatSqlValue = (value: any): string => {
   if (value === null || value === undefined) {
-    return 'NULL';
+    return 'NULL'
   }
-  
+
   if (typeof value === 'string') {
     // Escape single quotes in strings
-    return `'${value.replace(/'/g, "''")}'`;
+    return `'${value.replace(/'/g, "''")}'`
   }
-  
+
   if (typeof value === 'boolean') {
-    return value ? '1' : '0';
+    return value ? '1' : '0'
   }
-  
+
   if (value instanceof Date) {
-    return `'${value.toISOString()}'`;
+    return `'${value.toISOString()}'`
   }
-  
-  return String(value);
+
+  if (typeof value === 'object') {
+    // Convert objects to JSON strings
+    return `'${JSON.stringify(value).replace(/'/g, "''")}'`
+  }
+
+  return String(value)
 }

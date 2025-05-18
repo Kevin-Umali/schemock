@@ -266,7 +266,7 @@ function Index() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      {locales.map((loc) => (
+                      {locales.map((loc: string) => (
                         <SelectItem key={loc} value={loc} className='transition-colors duration-150 ease-in-out hover:bg-blue-50'>
                           {loc}
                         </SelectItem>

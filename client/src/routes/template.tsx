@@ -1,16 +1,18 @@
 import Spinner from '@/components/custom/spinner'
-import TemplateEditor from '@/components/custom/template-editor'
+import TipTapEditor from '@/components/custom/tiptap-editor'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import useCopyToClipboard from '@/hooks/useCopyToClipboard'
 import { cn } from '@/lib/utils'
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectGroup, SelectItem } from '@radix-ui/react-select'
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { createFileRoute, useNavigate, useRouterState } from '@tanstack/react-router'
 import { fallback, zodValidator } from '@tanstack/zod-adapter'
-import { Share2, Loader2, Braces } from 'lucide-react'
+import { Share2, Loader2, Braces, Check, Copy } from 'lucide-react'
 import LZString from 'lz-string'
 import { useState, useCallback } from 'react'
 import { z } from 'zod'
+import { useGenerateTemplate } from '@/api/mutations'
+import { type GenerateBodyTemplate } from '@server/schema/generate.schema'
 
 const templateSearchSchema = z.object({
   t: fallback(z.string(), '').optional().default(''),
@@ -31,7 +33,7 @@ export const Route = createFileRoute('/template')({
 })
 
 function Template() {
-  const { t: compressedTemplates, c: count, l: locale } = Route.useSearch()
+  const { t: compressedTemplate, c: count, l: locale } = Route.useSearch()
   const isRouteLoading = useRouterState().isLoading
   const { locales, fakerMethods } = Route.useRouteContext()
 
@@ -39,8 +41,21 @@ function Template() {
 
   const [copiedText, copy] = useCopyToClipboard()
 
+  const [templateContent, setTemplateContent] = useState<string>(() => {
+    if (!compressedTemplate) return ''
+
+    try {
+      const decompressed = LZString.decompressFromEncodedURIComponent(compressedTemplate)
+      return decompressed ?? ''
+    } catch (error) {
+      console.error('Failed to decompress template:', error)
+      return ''
+    }
+  })
   const [isDirty, setIsDirty] = useState(false)
-  const isGenerating = false
+  const [generatedResults, setGeneratedResults] = useState<string[]>([])
+
+  const { mutate: generateTemplate, isPending: isGenerating } = useGenerateTemplate()
 
   const setCount = useCallback(
     (value: number) => {
@@ -76,87 +91,152 @@ function Template() {
     [setCount],
   )
 
-  const handleShare = async () => {
-    if (isDirty) {
-      const compressed = LZString.compressToEncodedURIComponent(JSON.stringify(localNodes))
+  const handleTemplateChange = useCallback((content: string) => {
+    setTemplateContent(content)
+    setIsDirty(true)
+  }, [])
+
+  const handleShare = useCallback(async () => {
+    if (isDirty && templateContent) {
+      const compressed = LZString.compressToEncodedURIComponent(templateContent)
       await navigate({
         search: (prev) => ({
           ...prev,
-          s: compressed,
+          t: compressed,
         }),
         replace: true,
       })
       setIsDirty(false)
     }
     await copy(window.location.href)
-  }
+  }, [copy, isDirty, navigate, templateContent])
+
+  const handleGenerateTemplate = useCallback(() => {
+    if (!templateContent) return
+
+    generateTemplate(
+      {
+        template: templateContent,
+        count,
+        locale,
+      } as GenerateBodyTemplate,
+      {
+        onSuccess: (data) => {
+          setGeneratedResults(data)
+        },
+      },
+    )
+  }, [count, generateTemplate, locale, templateContent])
+
+  const handleCopyResult = useCallback(
+    async (result: string) => {
+      await copy(result)
+    },
+    [copy],
+  )
 
   return (
     <div className='p-4 max-w-7xl mx-auto'>
       {isRouteLoading ? (
         <div className='flex min-h-[50vh] items-center justify-center'>
-          <Spinner show text='Loading schema' />
+          <Spinner show text='Loading template editor' />
         </div>
       ) : (
-        <div className='border rounded-lg p-4 mb-6 shadow-sm transition-all duration-200 ease-in-out hover:shadow-md'>
-          <div className='flex flex-wrap items-center gap-4'>
-            {/* Count Input */}
-            <div className='flex items-center gap-2'>
-              <label htmlFor='count' className='text-sm font-medium text-gray-700'>
-                Count:
-              </label>
-              <Input
-                id='count'
-                type='number'
-                min={1}
-                max={100}
-                value={count ?? 1}
-                onChange={handleCountChange}
-                className='w-24 transition-all duration-200 ease-in-out focus:ring-2 focus:ring-blue-500'
-              />
+        <>
+          <div className='border rounded-lg p-4 mb-6 shadow-sm transition-all duration-200 ease-in-out hover:shadow-md'>
+            <h2 className='text-lg font-semibold text-gray-900 mb-4'>Template Generator</h2>
+            <div className='flex flex-wrap items-center gap-4 mb-4'>
+              {/* Count Input */}
+              <div className='flex items-center gap-2'>
+                <label htmlFor='count' className='text-sm font-medium text-gray-700'>
+                  Count:
+                </label>
+                <Input
+                  id='count'
+                  type='number'
+                  min={1}
+                  max={100}
+                  value={count ?? 1}
+                  onChange={handleCountChange}
+                  className='w-24 transition-all duration-200 ease-in-out focus:ring-2 focus:ring-blue-500'
+                />
+              </div>
+
+              {/* Locale Selector */}
+              <div className='flex items-center gap-2'>
+                <label htmlFor='locale' className='text-sm font-medium text-gray-700'>
+                  Locale:
+                </label>
+                <Select value={locale ?? 'en'} onValueChange={setLocale}>
+                  <SelectTrigger className='w-40 transition-all duration-200 ease-in-out hover:border-blue-500'>
+                    <SelectValue placeholder='Select Locale' />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      {locales.map((loc: string) => (
+                        <SelectItem key={loc} value={loc} className='transition-colors duration-150 ease-in-out hover:bg-blue-50'>
+                          {loc}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Action Buttons */}
+              <div className='ml-auto flex items-center gap-2'>
+                <Button onClick={handleShare} variant='outline' className='transition-all duration-200 ease-in-out hover:shadow-md'>
+                  <Share2 className='w-4 h-4 mr-2' />
+                  {isDirty ? 'Save & Share Template' : 'Share Template'}
+                </Button>
+                <Button
+                  onClick={handleGenerateTemplate}
+                  variant='default'
+                  disabled={isGenerating ?? (false || templateContent === '')}
+                  className={cn('transition-all hover:shadow-md', isGenerating && 'opacity-70')}
+                >
+                  {isGenerating ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <Braces className='mr-2 h-4 w-4' />}
+                  Generate Template
+                </Button>
+              </div>
             </div>
 
-            {/* Locale Selector */}
-            <div className='flex items-center gap-2'>
-              <label htmlFor='locale' className='text-sm font-medium text-gray-700'>
-                Locale:
+            <div className='mt-4'>
+              <label htmlFor='template-editor' className='block text-sm font-medium text-gray-700 mb-2'>
+                Template (Use &#123;&#123;faker.method&#125;&#125; syntax to insert dynamic content):
               </label>
-              <Select value={locale ?? 'en'} onValueChange={setLocale}>
-                <SelectTrigger className='w-40 transition-all duration-200 ease-in-out hover:border-blue-500'>
-                  <SelectValue placeholder='Select Locale' />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    {locales.map((loc) => (
-                      <SelectItem key={loc} value={loc} className='transition-colors duration-150 ease-in-out hover:bg-blue-50'>
-                        {loc}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Action Buttons */}
-            <div className='ml-auto flex items-center gap-2'>
-              <Button onClick={handleShare} variant='outline' className='transition-all duration-200 ease-in-out hover:shadow-md'>
-                <Share2 className='w-4 h-4 mr-2' />
-                {isDirty ? 'Save & Share Schema' : 'Share Schema'}
-              </Button>
-              <Button
-                onClick={() => console.log('Generate Template')}
-                variant='default'
-                disabled={isGenerating}
-                className={cn('transition-all hover:shadow-md', isGenerating && 'opacity-70')}
-              >
-                {isGenerating ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <Braces className='mr-2 h-4 w-4' />}
-                Generate Template
-              </Button>
+              <div id='template-editor'>
+                <TipTapEditor onChange={handleTemplateChange} initialContent={templateContent} fakerMethods={fakerMethods} />
+              </div>
+              <p className='mt-2 text-xs text-gray-500'>
+                Type / to insert a faker method. Example: "Hello, my name is &#123;&#123;person.firstName&#125;&#125; &#123;&#123;person.lastName&#125;&#125;."
+              </p>
             </div>
           </div>
-        </div>
+
+          {/* Generated Results */}
+          {generatedResults.length > 0 && (
+            <div className='border rounded-lg p-4 shadow-sm transition-all duration-300 ease-in-out hover:shadow-md'>
+              <h2 className='text-lg font-semibold text-gray-900 mb-4'>Generated Results</h2>
+              <div className='space-y-4'>
+                {generatedResults.map((result, index) => (
+                  <div key={`result-${index}-${result.substring(0, 10)}`} className='bg-gray-50 p-4 rounded-md relative group'>
+                    <Button
+                      variant='ghost'
+                      size='sm'
+                      onClick={() => handleCopyResult(result)}
+                      className='absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity'
+                    >
+                      {copiedText === result ? <Check className='h-4 w-4 text-green-500' /> : <Copy className='h-4 w-4' />}
+                    </Button>
+                    <p className='pr-8'>{result}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </>
       )}
-      <TemplateEditor fakerMethods={fakerMethods} />
     </div>
   )
 }

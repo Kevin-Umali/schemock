@@ -5,25 +5,29 @@ import { z } from 'zod'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Braces, Check, Copy, Download, Loader2, Share2 } from 'lucide-react'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Label } from '@/components/ui/label'
+import { Braces, Check, Copy, Loader2, Share2 } from 'lucide-react'
 import Spinner from '@/components/custom/spinner'
 import { cn } from '@/lib/utils'
 import useCopyToClipboard from '@/hooks/useCopyToClipboard'
-import { useGenerateCSV } from '@/api/mutations'
-import { type GenerateBodyCSV } from '@server/schema/generate.schema'
+import { useGenerateSQL } from '@/api/mutations'
+import { type GenerateBodySQL } from '@server/schema/generate.schema'
 import { Textarea } from '@/components/ui/textarea'
 import SchemaBuilder from '@/components/custom/schema-builder'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
-const csvSearchSchema = z.object({
+const sqlSearchSchema = z.object({
   s: fallback(z.string(), '').optional().default(''),
   c: fallback(z.number().min(1).max(100), 1).optional().default(1),
   l: fallback(z.string(), 'en').optional().default('en'),
+  t: fallback(z.string(), 'users').optional().default('users'),
+  m: fallback(z.boolean(), false).optional().default(false),
 })
 
-export const Route = createFileRoute('/csv')({
-  validateSearch: zodValidator(csvSearchSchema),
-  component: CSV,
+export const Route = createFileRoute('/sql')({
+  validateSearch: zodValidator(sqlSearchSchema),
+  component: SQL,
   pendingComponent: () => (
     <div className='flex items-center justify-center'>
       <Spinner show text='Loading...' />
@@ -33,8 +37,8 @@ export const Route = createFileRoute('/csv')({
   pendingMs: 10,
 })
 
-function CSV() {
-  const { s: compressedSchema, c: count, l: locale } = Route.useSearch()
+function SQL() {
+  const { s: compressedSchema, c: count, l: locale, t: tableName, m: multiRowInsert } = Route.useSearch()
   const isRouteLoading = useRouterState().isLoading
   const { locales, fakerMethods } = Route.useRouteContext()
 
@@ -57,7 +61,7 @@ function CSV() {
     }
   })
 
-  const { mutate: generateCSV, data: generatedCSV, error: generationError, isPending: isGenerating } = useGenerateCSV()
+  const { mutate: generateSQL, data: generatedSQL, error: generationError, isPending: isGenerating } = useGenerateSQL()
 
   const setCount = useCallback(
     (value: number) => {
@@ -85,12 +89,45 @@ function CSV() {
     [navigate],
   )
 
+  const setTableName = useCallback(
+    (value: string) => {
+      navigate({
+        search: (prev) => ({
+          ...prev,
+          t: value,
+        }),
+        replace: true,
+      })
+    },
+    [navigate],
+  )
+
+  const setMultiRowInsert = useCallback(
+    (value: boolean) => {
+      navigate({
+        search: (prev) => ({
+          ...prev,
+          m: value,
+        }),
+        replace: true,
+      })
+    },
+    [navigate],
+  )
+
   const handleCountChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const value = parseInt(e.target.value)
       setCount(value > 0 && value <= 100 ? value : 1)
     },
     [setCount],
+  )
+
+  const handleTableNameChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setTableName(e.target.value)
+    },
+    [setTableName],
   )
 
   const handleSchemaChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -111,38 +148,26 @@ function CSV() {
     setSchemaError(null)
   }, [])
 
-  const handleGenerateCSV = useCallback(() => {
+  const handleGenerateSQL = useCallback(() => {
     try {
       const schema = schemaMode === 'json' ? JSON.parse(schemaInput) : schemaObject
-      generateCSV({
+      generateSQL({
         schema,
         count,
         locale,
-      } as GenerateBodyCSV)
+        tableName,
+        multiRowInsert,
+      } as GenerateBodySQL)
     } catch (error) {
       setSchemaError('Invalid JSON schema')
     }
-  }, [generateCSV, schemaInput, schemaObject, schemaMode, count, locale])
+  }, [generateSQL, schemaInput, schemaObject, schemaMode, count, locale, tableName, multiRowInsert])
 
   const handleCopy = useCallback(async () => {
-    if (generatedCSV) {
-      await copy(generatedCSV)
+    if (generatedSQL) {
+      await copy(generatedSQL)
     }
-  }, [copy, generatedCSV])
-
-  const handleDownload = useCallback(() => {
-    if (generatedCSV) {
-      const blob = new Blob([generatedCSV], { type: 'text/csv' })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = 'generated_data.csv'
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      URL.revokeObjectURL(url)
-    }
-  }, [generatedCSV])
+  }, [copy, generatedSQL])
 
   const handleShare = useCallback(async () => {
     try {
@@ -164,13 +189,13 @@ function CSV() {
     <div className='p-4 max-w-7xl mx-auto'>
       {isRouteLoading ? (
         <div className='flex min-h-[50vh] items-center justify-center'>
-          <Spinner show text='Loading CSV generator' />
+          <Spinner show text='Loading SQL generator' />
         </div>
       ) : (
         <>
           {/* Control Panel */}
           <div className='border rounded-lg p-4 mb-6 shadow-sm transition-all duration-200 ease-in-out hover:shadow-md'>
-            <h2 className='text-lg font-semibold text-gray-900 mb-4'>CSV Generator</h2>
+            <h2 className='text-lg font-semibold text-gray-900 mb-4'>SQL Generator</h2>
             <div className='flex flex-wrap items-center gap-4 mb-4'>
               {/* Count Input */}
               <div className='flex items-center gap-2'>
@@ -209,6 +234,28 @@ function CSV() {
                 </Select>
               </div>
 
+              {/* Table Name Input */}
+              <div className='flex items-center gap-2'>
+                <label htmlFor='tableName' className='text-sm font-medium text-gray-700'>
+                  Table Name:
+                </label>
+                <Input
+                  id='tableName'
+                  type='text'
+                  value={tableName ?? 'users'}
+                  onChange={handleTableNameChange}
+                  className='w-40 transition-all duration-200 ease-in-out focus:ring-2 focus:ring-blue-500'
+                />
+              </div>
+
+              {/* Multi-row Insert Checkbox */}
+              <div className='flex items-center gap-2'>
+                <Checkbox id='multiRowInsert' checked={multiRowInsert} onCheckedChange={setMultiRowInsert} />
+                <Label htmlFor='multiRowInsert' className='text-sm font-medium text-gray-700'>
+                  Multi-row Insert
+                </Label>
+              </div>
+
               {/* Action Buttons */}
               <div className='ml-auto flex items-center gap-2'>
                 <Button onClick={handleShare} variant='outline' className='transition-all duration-200 ease-in-out hover:shadow-md'>
@@ -216,13 +263,13 @@ function CSV() {
                   Share
                 </Button>
                 <Button
-                  onClick={handleGenerateCSV}
+                  onClick={handleGenerateSQL}
                   variant='default'
                   disabled={isGenerating}
                   className={cn('transition-all hover:shadow-md', isGenerating && 'opacity-70')}
                 >
                   {isGenerating ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <Braces className='mr-2 h-4 w-4' />}
-                  Generate CSV
+                  Generate SQL
                 </Button>
               </div>
             </div>
@@ -259,51 +306,40 @@ function CSV() {
             </div>
           </div>
 
-          {/* Generated CSV Output */}
-          {generatedCSV && (
+          {/* Generated SQL Output */}
+          {generatedSQL && (
             <div className='border rounded-lg p-4 shadow-sm transition-all duration-300 ease-in-out hover:shadow-md'>
               <div className='flex justify-between items-center mb-4'>
-                <h2 className='text-lg font-semibold text-gray-900'>Generated CSV</h2>
-                <div className='flex gap-2'>
-                  <Button
-                    variant='outline'
-                    size='sm'
-                    onClick={handleCopy}
-                    className='flex items-center gap-2 relative w-24 justify-center transition-all duration-200 ease-in-out hover:shadow-md'
+                <h2 className='text-lg font-semibold text-gray-900'>Generated SQL</h2>
+                <Button
+                  variant='outline'
+                  size='sm'
+                  onClick={handleCopy}
+                  className='flex items-center gap-2 relative w-24 justify-center transition-all duration-200 ease-in-out hover:shadow-md'
+                >
+                  {/* Copied State */}
+                  <div
+                    className={cn(
+                      'flex items-center gap-2 absolute transition-all duration-300 ease-in-out transform',
+                      copiedText ? 'scale-100 opacity-100' : 'scale-0 opacity-0',
+                    )}
                   >
-                    {/* Copied State */}
-                    <div
-                      className={cn(
-                        'flex items-center gap-2 absolute transition-all duration-300 ease-in-out transform',
-                        copiedText ? 'scale-100 opacity-100' : 'scale-0 opacity-0',
-                      )}
-                    >
-                      <Check className='w-4 h-4 text-emerald-500' />
-                      <span className='text-emerald-500 text-sm'>Copied!</span>
-                    </div>
-                    {/* Copy Button */}
-                    <div
-                      className={cn(
-                        'flex items-center gap-2 absolute transition-all duration-300 ease-in-out transform',
-                        copiedText ? 'scale-0 opacity-0' : 'scale-100 opacity-100',
-                      )}
-                    >
-                      <Copy className='w-4 h-4' />
-                      <span className='text-sm'>Copy</span>
-                    </div>
-                  </Button>
-                  <Button
-                    variant='outline'
-                    size='sm'
-                    onClick={handleDownload}
-                    className='flex items-center gap-2 transition-all duration-200 ease-in-out hover:shadow-md'
+                    <Check className='w-4 h-4 text-emerald-500' />
+                    <span className='text-emerald-500 text-sm'>Copied!</span>
+                  </div>
+                  {/* Copy Button */}
+                  <div
+                    className={cn(
+                      'flex items-center gap-2 absolute transition-all duration-300 ease-in-out transform',
+                      copiedText ? 'scale-0 opacity-0' : 'scale-100 opacity-100',
+                    )}
                   >
-                    <Download className='w-4 h-4' />
-                    <span className='text-sm'>Download</span>
-                  </Button>
-                </div>
+                    <Copy className='w-4 h-4' />
+                    <span className='text-sm'>Copy</span>
+                  </div>
+                </Button>
               </div>
-              <pre className='bg-gray-50 p-4 rounded-md text-sm overflow-x-auto whitespace-pre-wrap'>{generatedCSV}</pre>
+              <pre className='bg-gray-50 p-4 rounded-md text-sm overflow-x-auto whitespace-pre-wrap'>{generatedSQL}</pre>
             </div>
           )}
 
