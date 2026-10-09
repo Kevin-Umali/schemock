@@ -1,5 +1,4 @@
 import { z } from '@hono/zod-openapi'
-
 export const HelperPathParameter = z.object({
   name: z.enum(['faker', 'locale']).openapi({
     param: {
@@ -11,5 +10,4 @@ export const HelperPathParameter = z.object({
     example: 'faker',
   }),
 })
-
 export type HelperPath = z.infer<typeof HelperPathParameter>

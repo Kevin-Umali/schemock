@@ -1,14 +1,11 @@
+import Spinner from '@/components/custom/spinner'
+import TranstackProvider from '@/context/tanstackContext'
+import '@/index.css'
+import { QueryClient } from '@tanstack/react-query'
+import { createRouter, ErrorComponent, RouterProvider } from '@tanstack/react-router'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { createRouter, ErrorComponent, RouterProvider } from '@tanstack/react-router'
-import TranstackProvider from '@/context/tanstackContext'
-
-import '@/index.css'
-
 import { routeTree } from './routeTree.gen'
-import { QueryClient } from '@tanstack/react-query'
-import Spinner from '@/components/custom/spinner'
-
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -18,7 +15,6 @@ const queryClient = new QueryClient({
     },
   },
 })
-
 const router = createRouter({
   routeTree,
   defaultPendingComponent: () => (
@@ -31,13 +27,11 @@ const router = createRouter({
   defaultPreload: 'intent',
   defaultPreloadStaleTime: 0,
 })
-
 declare module '@tanstack/react-router' {
   interface Register {
     router: typeof router
   }
 }
-
 const rootElement = document.getElementById('root')!
 if (!rootElement.innerHTML) {
   const root = createRoot(rootElement)

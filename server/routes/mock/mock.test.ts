@@ -63,7 +63,7 @@ describe('Mock Routes', () => {
       const data = await res.json()
 
       // Check if data is sorted by name in ascending order
-      const names = data.data.map((item: any) => item.name)
+      const names = data.data.map((item: { name: string }) => item.name)
       const sortedNames = [...names].sort()
       expect(names).toEqual(sortedNames)
     })

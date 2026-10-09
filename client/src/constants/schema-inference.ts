@@ -1,0 +1,21 @@
+export const NAMED_GENERATORS: [RegExp, string][] = [
+  [/^(id|uuid)$|[_-]id$/i, 'string.uuid'],
+  [/email/i, 'internet.exampleEmail'],
+  [/first.?name/i, 'person.firstName'],
+  [/last.?name/i, 'person.lastName'],
+  [/^(name|full.?name)$/i, 'person.fullName'],
+  [/phone/i, 'phone.number'],
+  [/street|address.?line/i, 'location.streetAddress'],
+  [/city/i, 'location.city'],
+  [/country/i, 'location.country'],
+  [/zip|postal/i, 'location.zipCode'],
+  [/company/i, 'company.name'],
+  [/product|title/i, 'commerce.productName'],
+  [/price|amount/i, 'commerce.price'],
+  [/url|website/i, 'internet.url'],
+  [/date|created|updated/i, 'date.recent'],
+  [
+    /^(?:is|has|can|should|was|were)[_-]|^(?:active|enabled|disabled|deleted|verified|published|archived|available|valid)$/i,
+    'datatype.boolean',
+  ],
+]

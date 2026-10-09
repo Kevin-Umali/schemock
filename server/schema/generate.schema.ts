@@ -1,6 +1,13 @@
 import { z } from '@hono/zod-openapi'
-import { NestedBaseSchema, BaseSchema, commonFields, TableNameSchema, MultiRowInsertSchema, TemplateSchema, CountSchema, LocaleSchema } from './base.schema'
-
+import {
+  NestedBaseSchema,
+  commonFields,
+  TableNameSchema,
+  MultiRowInsertSchema,
+  TemplateSchema,
+  CountSchema,
+  LocaleSchema,
+} from './base.schema'
 /**
  * Schema for generating JSON data with complex nested structure
  */
@@ -28,13 +35,12 @@ export const GenerateBodyJSONRequest = z
       locale: 'en',
     },
   })
-
 /**
  * Schema for generating CSV data with flat structure
  */
 export const GenerateBodyCSVRequest = z
   .object({
-    schema: BaseSchema,
+    schema: NestedBaseSchema,
     ...commonFields,
   })
   .openapi({
@@ -49,13 +55,12 @@ export const GenerateBodyCSVRequest = z
       locale: 'en',
     },
   })
-
 /**
  * Schema for generating SQL insert statements
  */
 export const GenerateBodySQLRequest = z
   .object({
-    schema: BaseSchema,
+    schema: NestedBaseSchema,
     ...commonFields,
     tableName: TableNameSchema,
     multiRowInsert: MultiRowInsertSchema,
@@ -74,7 +79,6 @@ export const GenerateBodySQLRequest = z
       multiRowInsert: true,
     },
   })
-
 /**
  * Schema for generating data from a template string
  */
@@ -93,7 +97,6 @@ export const GenerateBodyTemplateRequest = z
       locale: 'en',
     },
   })
-
 export type GenerateBodyJSON = z.infer<typeof GenerateBodyJSONRequest>
 export type GenerateBodyCSV = z.infer<typeof GenerateBodyCSVRequest>
 export type GenerateBodySQL = z.infer<typeof GenerateBodySQLRequest>

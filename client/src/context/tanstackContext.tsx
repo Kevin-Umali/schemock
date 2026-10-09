@@ -1,9 +1,12 @@
-'use client'
-
-import { useState } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-
-export default function TanstackQueryProvider({ queryClient, children }: Readonly<{ queryClient?: QueryClient; children: React.ReactNode }>) {
+import type * as React from 'react'
+import { useState } from 'react'
+export const TanstackQueryProvider: React.FC<
+  Readonly<{
+    queryClient?: QueryClient
+    children: React.ReactNode
+  }>
+> = ({ queryClient, children }) => {
   const [queryClientInstance] = useState(
     () =>
       queryClient ??
@@ -19,3 +22,4 @@ export default function TanstackQueryProvider({ queryClient, children }: Readonl
   )
   return <QueryClientProvider client={queryClientInstance}>{children}</QueryClientProvider>
 }
+export default TanstackQueryProvider

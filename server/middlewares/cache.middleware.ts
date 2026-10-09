@@ -1,109 +1,48 @@
-import type { Context, MiddlewareHandler, Next } from 'hono'
+import type { Context, MiddlewareHandler } from 'hono'
 import { config } from '../config'
-
-type CacheTTL = 'short' | 'medium' | 'long' | number
-
-interface CacheOptions {
-  cacheControl?: string
-  vary?: string[]
-}
-
-// In-memory cache storage
-const memoryCache = new Map<string, { response: Response; expires: number }>()
-
-/**
- * Creates a cache middleware with the specified TTL
- * @param ttl - Time to live in seconds or predefined duration ('short', 'medium', 'long')
- * @param options - Additional cache options
- * @returns Middleware handler with caching
- */
+import type { CacheTTL, CacheOptions, CachedResponse } from '../types/cache'
+/** Cache public metadata without retaining streams or request-specific headers. */
 export const createCache = (ttl: CacheTTL, options?: CacheOptions): MiddlewareHandler => {
-  // Convert named TTL to seconds
-  const ttlInSeconds = typeof ttl === 'string' ? config.cache.ttl[ttl] : ttl
-
-  // Generate cache control header based on TTL
-  const cacheControl = options?.cacheControl ?? `max-age=${ttlInSeconds}, s-maxage=${ttlInSeconds}`
-
-  return async (c: Context, next: Next): Promise<Response | void> => {
-    // Skip caching for non-GET requests
-    if (c.req.method !== 'GET') {
-      return next()
+  const seconds = typeof ttl === 'string' ? config.cache.ttl[ttl] : ttl
+  const cache = new Map<string, CachedResponse>()
+  const cacheControl = options?.cacheControl ?? `public, max-age=${seconds}`
+  const vary = options?.vary ?? []
+  return async (c, next) => {
+    if (c.req.method !== 'GET') return next()
+    const key = generateCacheKey(c, vary)
+    const now = Date.now()
+    const cached = cache.get(key)
+    c.header('Cache-Control', cacheControl)
+    if (vary.length) c.header('Vary', vary.join(', '), { append: true })
+    if (cached && cached.expires > now) {
+      c.header('Content-Type', cached.contentType)
+      return c.body(cached.body, cached.status)
     }
-
+    cache.delete(key)
+    await next()
+    if (c.res.status !== 200) {
+      c.header('Cache-Control', 'no-store')
+      return
+    }
     try {
-      // Generate a cache key
-      const cacheKey = generateCacheKey(c)
-
-      // Try to get from cache
-      const now = Date.now()
-      const cachedItem = memoryCache.get(cacheKey)
-
-      if (cachedItem && cachedItem.expires > now) {
-        // Return cached response if not expired
-        return cachedItem.response.clone()
+      const body = await c.res.clone().text()
+      for (const [entry, value] of cache) {
+        if (value.expires <= now) cache.delete(entry)
       }
-
-      // If not in cache or expired, continue to handler
-      await next()
-
-      // After handler execution, cache the response
-      if (c.res && c.res.status >= 200 && c.res.status < 300) {
-        // Clone the response to cache it
-        const responseToCache = new Response(c.res.body, {
-          status: c.res.status,
-          statusText: c.res.statusText,
-          headers: new Headers(c.res.headers),
-        })
-
-        // Add cache headers
-        responseToCache.headers.set('Cache-Control', cacheControl)
-
-        // Add Vary headers if specified
-        if (options?.vary && options.vary.length > 0) {
-          responseToCache.headers.set('Vary', options.vary.join(', '))
-        }
-
-        // Store in cache with expiration
-        memoryCache.set(cacheKey, {
-          response: responseToCache.clone(),
-          expires: now + ttlInSeconds * 1000,
-        })
-
-        // Clean up expired cache entries periodically
-        if (memoryCache.size > 100) {
-          cleanupExpiredCache()
-        }
-      }
-
-      return c.res
+      // Bound memory even when requests contain many distinct query strings.
+      if (cache.size >= 200) cache.delete(cache.keys().next().value!)
+      cache.set(key, {
+        body,
+        contentType: c.res.headers.get('Content-Type') ?? 'application/json',
+        status: 200,
+        expires: now + seconds * 1000,
+      })
     } catch (error) {
-      console.error('Cache middleware error:', error instanceof Error ? error.message : String(error))
-      return next()
+      console.error('Could not cache metadata:', error)
     }
   }
 }
-
-/**
- * Generates a cache key from the request
- * @param c - Hono context
- * @returns Cache key string
- */
-export const generateCacheKey = (c: Context): string => {
+export const generateCacheKey = (c: Context, vary: string[] = []): string => {
   const url = new URL(c.req.url)
-  const method = c.req.method
-
-  // For GET requests, use URL as key
-  return `${method}:${url.pathname}${url.search}`
-}
-
-/**
- * Cleans up expired cache entries
- */
-function cleanupExpiredCache(): void {
-  const now = Date.now()
-  for (const [key, value] of memoryCache.entries()) {
-    if (value.expires <= now) {
-      memoryCache.delete(key)
-    }
-  }
+  return JSON.stringify([c.req.method, url.pathname, url.search, ...vary.map((name) => c.req.header(name) ?? '')])
 }
