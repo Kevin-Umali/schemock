@@ -1,4 +1,5 @@
 import type { GuideEndpoint, GuideNavItem, GuideStep } from '../types/content'
+import { absoluteApiUrl } from '@/utils/api-url'
 
 export const SCHEMA_EXAMPLE = `{
   "id": "string.uuid",
@@ -22,7 +23,7 @@ export const MOCK_REQUEST_EXAMPLE = `{
   "locale": "en"
 }`
 
-export const MOCK_CURL_EXAMPLE = `curl -X POST 'http://localhost:3000/api/v1/mock/pagination?page=1&limit=10&sort=name:asc' \\
+export const MOCK_CURL_EXAMPLE = `curl -X POST '${absoluteApiUrl('/mock/pagination?page=1&limit=10&sort=name:asc')}' \\
   -H 'Content-Type: application/json' \\
   -d '${MOCK_REQUEST_EXAMPLE.replaceAll("'", "'\\''")}'`
 

@@ -1,5 +1,6 @@
 import JSON5 from 'json5'
 import { commonMethods } from '@/constants/fields'
+import { SCHEMA_LIMITS } from '@/constants/schema-editor'
 import type { SelectOption } from '@/types/ui'
 import type { FakerMethodCategory } from '@/types/faker'
 import type { SchemaValue } from '@/types/schema'
@@ -37,7 +38,7 @@ export const getFieldOptions = (value: SchemaValue, methods: FakerMethodCategory
         .filter((item) => !commonMethods.some(([method]) => method === item.method))
         .map((item) => ({ value: item.method, label: item.method, description: item.description })),
     ),
-    ...(depth < 12
+    ...(depth < SCHEMA_LIMITS.depth
       ? [
           { value: '$object', label: 'Nested object' },
           { value: '$array', label: 'Array' },
@@ -92,8 +93,9 @@ export const isKnownFieldGenerator = (value: string, methods: FakerMethodCategor
 }
 
 export const isValidFieldSchema = (schema: SchemaValue, methods: FakerMethodCategory[], depth = 0): boolean => {
-  if (depth > 12) return false
+  if (depth > SCHEMA_LIMITS.depth) return false
   if (isArraySchema(schema)) {
+    if (depth + 1 > SCHEMA_LIMITS.depth) return false
     if (!Number.isInteger(schema.count) || schema.count < 1 || schema.count > 100) return false
     if (isObject(schema.items)) return isValidFieldSchema(schema.items as SchemaValue, methods, depth + 1)
     return (

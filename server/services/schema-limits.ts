@@ -1,10 +1,13 @@
 import { REQUEST_LIMITS, RESERVED_KEYS } from '../constant/security'
 import { HTTPException } from 'hono/http-exception'
+import { appendSchemaPath } from '../utils/schema-path'
 export const assertSchemaLimits = (schema: unknown, count = 1): void => {
   let cost = 0
-  const visit = (value: unknown, depth: number, multiplier: number, rootRecord = false): void => {
+  const visit = (value: unknown, depth: number, multiplier: number, path: string, rootRecord = false): void => {
     if (depth > REQUEST_LIMITS.schemaDepth)
-      throw new HTTPException(422, { message: 'Schemas support up to 12 levels of nesting.' })
+      throw new HTTPException(422, {
+        message: `Nesting at ${path} exceeds the ${REQUEST_LIMITS.schemaDepth}-level limit.`,
+      })
     cost += multiplier
     if (cost > REQUEST_LIMITS.generatedValues)
       throw new HTTPException(422, {
@@ -25,7 +28,7 @@ export const assertSchemaLimits = (schema: unknown, count = 1): void => {
       const size = object.count
       if (!Number.isInteger(size) || Number(size) < 1 || Number(size) > REQUEST_LIMITS.arrayItems)
         throw new HTTPException(422, { message: 'Array counts must be integers between 1 and 100.' })
-      visit(object.items, depth + 1, multiplier * Number(size))
+      visit(object.items, depth + 1, multiplier * Number(size), `${path}[]`)
       return
     }
 
@@ -34,8 +37,8 @@ export const assertSchemaLimits = (schema: unknown, count = 1): void => {
       throw new HTTPException(422, { message: 'Use no more than 100 fields per object.' })
     for (const [key, field] of entries) {
       if (RESERVED_KEYS.has(key)) throw new HTTPException(422, { message: `Field name "${key}" is reserved.` })
-      visit(field, depth + 1, multiplier)
+      visit(field, depth + 1, multiplier, appendSchemaPath(path, key))
     }
   }
-  visit(schema, 0, count, true)
+  visit(schema, 0, count, '$', true)
 }

@@ -1,5 +1,5 @@
 export const SCHEMA_LIMITS = {
-  depth: 12,
+  depth: 32,
   fields: 100,
   arrayItems: 100,
   valueCharacters: 10_000,

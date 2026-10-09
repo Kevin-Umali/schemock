@@ -1,6 +1,6 @@
 export const REQUEST_LIMITS = {
   bodyBytes: 64 * 1024,
-  schemaDepth: 12,
+  schemaDepth: 32,
   fieldsPerObject: 100,
   arrayItems: 100,
   generatedValues: 10000,
