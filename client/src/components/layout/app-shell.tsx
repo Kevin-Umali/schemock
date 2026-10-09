@@ -24,6 +24,7 @@ import {
 import { NAVIGATION_GROUPS, NAVIGATION_ITEMS } from '@/constants/navigation'
 import { useSidebar } from '@/hooks/use-sidebar'
 import { useTheme } from '@/hooks/use-theme'
+import { apiUrl } from '@/utils/api-url'
 import { Link, Outlet, useRouterState } from '@tanstack/react-router'
 import { ArrowUpRight, BookOpen, Braces, HardDrive, Moon, Sun } from 'lucide-react'
 import type * as React from 'react'
@@ -92,7 +93,7 @@ const WorkspaceFrame: React.FC = () => {
             <SidebarMenuItem>
               <SidebarMenuButton
                 tooltip='API reference'
-                render={<a href='/api/v1/ui' target='_blank' rel='noreferrer' />}
+                render={<a href={apiUrl('/ui')} target='_blank' rel='noreferrer' />}
               >
                 <ArrowUpRight />
                 <span>API reference</span>

@@ -1,9 +1,11 @@
+import { apiUrl } from '@/utils/api-url'
+
 export const apiRequest = async <T>(
   path: string,
   options: RequestInit = {},
   format: 'json' | 'text' = 'json',
 ): Promise<T> => {
-  const response = await fetch(`/api/v1${path}`, options)
+  const response = await fetch(apiUrl(path), options)
   if (!response.ok) {
     const body = (await response.json().catch(() => null)) as {
       message?: string

@@ -10,6 +10,7 @@ import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, Tabl
 import { Skeleton } from '@/components/ui/skeleton'
 import useCopyToClipboard from '@/hooks/useCopyToClipboard'
 import { apiRequest } from '@/services/api-client'
+import { apiUrl } from '@/utils/api-url'
 import {
   createMockShareUrl,
   getMockLocaleOptions,
@@ -311,7 +312,7 @@ export const MockWorkspace: React.FC = () => {
           readOnly
           aria-label='Mock API request example'
           className='mt-3 font-mono text-xs min-h-40'
-          value={`POST /api/v1/mock/pagination?page=${page}&limit=${limit}${sort ? `&sort=${sort}` : ''}\nContent-Type: application/json\n\n${JSON.stringify({ schema, count, locale }, null, 2)}`}
+          value={`POST ${apiUrl(`/mock/pagination?page=${page}&limit=${limit}${sort ? `&sort=${sort}` : ''}`)}\nContent-Type: application/json\n\n${JSON.stringify({ schema, count, locale }, null, 2)}`}
         />
       </details>
     </div>

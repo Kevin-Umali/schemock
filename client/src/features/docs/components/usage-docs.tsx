@@ -1,5 +1,6 @@
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
+import { SCHEMA_LIMITS } from '@/constants/schema-editor'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import useCopyToClipboard from '@/hooks/useCopyToClipboard'
 import { ArrowUpRight, Check, Copy } from 'lucide-react'
@@ -313,8 +314,8 @@ export const UsageDocs: React.FC = () => {
                 <strong className='font-medium text-foreground'>Arrays:</strong> 1–100 items in each list.
               </li>
               <li>
-                <strong className='font-medium text-foreground'>Schemas:</strong> up to 100 fields per object and 12
-                levels of nesting.
+                <strong className='font-medium text-foreground'>Schemas:</strong> up to {SCHEMA_LIMITS.fields} fields
+                per object and {SCHEMA_LIMITS.depth} levels of nesting. Each field and array item adds one level.
               </li>
               <li>
                 <strong className='font-medium text-foreground'>Template:</strong> up to 10,000 characters.
