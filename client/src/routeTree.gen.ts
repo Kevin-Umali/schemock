@@ -8,55 +8,104 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-// Import Routes
+import { Route as rootRouteImport } from './routes/__root'
+import { Route as IndexRouteImport } from './routes/index'
+import { Route as CsvRouteImport } from './routes/csv'
+import { Route as DocsRouteImport } from './routes/docs'
+import { Route as HelperRouteImport } from './routes/helper'
+import { Route as MockRouteImport } from './routes/mock'
+import { Route as SqlRouteImport } from './routes/sql'
+import { Route as TemplateRouteImport } from './routes/template'
 
-import { Route as rootRoute } from './routes/__root'
-import { Route as TemplateImport } from './routes/template'
-import { Route as SqlImport } from './routes/sql'
-import { Route as MockImport } from './routes/mock'
-import { Route as HelperImport } from './routes/helper'
-import { Route as CsvImport } from './routes/csv'
-import { Route as IndexImport } from './routes/index'
-
-// Create/Update Routes
-
-const TemplateRoute = TemplateImport.update({
-  id: '/template',
-  path: '/template',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const SqlRoute = SqlImport.update({
-  id: '/sql',
-  path: '/sql',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const MockRoute = MockImport.update({
-  id: '/mock',
-  path: '/mock',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const HelperRoute = HelperImport.update({
-  id: '/helper',
-  path: '/helper',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const CsvRoute = CsvImport.update({
-  id: '/csv',
-  path: '/csv',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const IndexRoute = IndexImport.update({
+const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CsvRoute = CsvRouteImport.update({
+  id: '/csv',
+  path: '/csv',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DocsRoute = DocsRouteImport.update({
+  id: '/docs',
+  path: '/docs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HelperRoute = HelperRouteImport.update({
+  id: '/helper',
+  path: '/helper',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MockRoute = MockRouteImport.update({
+  id: '/mock',
+  path: '/mock',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SqlRoute = SqlRouteImport.update({
+  id: '/sql',
+  path: '/sql',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TemplateRoute = TemplateRouteImport.update({
+  id: '/template',
+  path: '/template',
+  getParentRoute: () => rootRouteImport,
 } as any)
 
-// Populate the FileRoutesByPath interface
+export interface FileRoutesByFullPath {
+  '/': typeof IndexRoute
+  '/csv': typeof CsvRoute
+  '/docs': typeof DocsRoute
+  '/helper': typeof HelperRoute
+  '/mock': typeof MockRoute
+  '/sql': typeof SqlRoute
+  '/template': typeof TemplateRoute
+}
+export interface FileRoutesByTo {
+  '/': typeof IndexRoute
+  '/csv': typeof CsvRoute
+  '/docs': typeof DocsRoute
+  '/helper': typeof HelperRoute
+  '/mock': typeof MockRoute
+  '/sql': typeof SqlRoute
+  '/template': typeof TemplateRoute
+}
+export interface FileRoutesById {
+  __root__: typeof rootRouteImport
+  '/': typeof IndexRoute
+  '/csv': typeof CsvRoute
+  '/docs': typeof DocsRoute
+  '/helper': typeof HelperRoute
+  '/mock': typeof MockRoute
+  '/sql': typeof SqlRoute
+  '/template': typeof TemplateRoute
+}
+export interface FileRouteTypes {
+  fileRoutesByFullPath: FileRoutesByFullPath
+  fullPaths: '/' | '/csv' | '/docs' | '/helper' | '/mock' | '/sql' | '/template'
+  fileRoutesByTo: FileRoutesByTo
+  to: '/' | '/csv' | '/docs' | '/helper' | '/mock' | '/sql' | '/template'
+  id:
+    | '__root__'
+    | '/'
+    | '/csv'
+    | '/docs'
+    | '/helper'
+    | '/mock'
+    | '/sql'
+    | '/template'
+  fileRoutesById: FileRoutesById
+}
+export interface RootRouteChildren {
+  IndexRoute: typeof IndexRoute
+  CsvRoute: typeof CsvRoute
+  DocsRoute: typeof DocsRoute
+  HelperRoute: typeof HelperRoute
+  MockRoute: typeof MockRoute
+  SqlRoute: typeof SqlRoute
+  TemplateRoute: typeof TemplateRoute
+}
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
@@ -64,140 +113,63 @@ declare module '@tanstack/react-router' {
       id: '/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexImport
-      parentRoute: typeof rootRoute
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/csv': {
       id: '/csv'
       path: '/csv'
       fullPath: '/csv'
-      preLoaderRoute: typeof CsvImport
-      parentRoute: typeof rootRoute
+      preLoaderRoute: typeof CsvRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/docs': {
+      id: '/docs'
+      path: '/docs'
+      fullPath: '/docs'
+      preLoaderRoute: typeof DocsRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/helper': {
       id: '/helper'
       path: '/helper'
       fullPath: '/helper'
-      preLoaderRoute: typeof HelperImport
-      parentRoute: typeof rootRoute
+      preLoaderRoute: typeof HelperRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/mock': {
       id: '/mock'
       path: '/mock'
       fullPath: '/mock'
-      preLoaderRoute: typeof MockImport
-      parentRoute: typeof rootRoute
+      preLoaderRoute: typeof MockRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/sql': {
       id: '/sql'
       path: '/sql'
       fullPath: '/sql'
-      preLoaderRoute: typeof SqlImport
-      parentRoute: typeof rootRoute
+      preLoaderRoute: typeof SqlRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/template': {
       id: '/template'
       path: '/template'
       fullPath: '/template'
-      preLoaderRoute: typeof TemplateImport
-      parentRoute: typeof rootRoute
+      preLoaderRoute: typeof TemplateRouteImport
+      parentRoute: typeof rootRouteImport
     }
   }
-}
-
-// Create and export the route tree
-
-export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/csv': typeof CsvRoute
-  '/helper': typeof HelperRoute
-  '/mock': typeof MockRoute
-  '/sql': typeof SqlRoute
-  '/template': typeof TemplateRoute
-}
-
-export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/csv': typeof CsvRoute
-  '/helper': typeof HelperRoute
-  '/mock': typeof MockRoute
-  '/sql': typeof SqlRoute
-  '/template': typeof TemplateRoute
-}
-
-export interface FileRoutesById {
-  __root__: typeof rootRoute
-  '/': typeof IndexRoute
-  '/csv': typeof CsvRoute
-  '/helper': typeof HelperRoute
-  '/mock': typeof MockRoute
-  '/sql': typeof SqlRoute
-  '/template': typeof TemplateRoute
-}
-
-export interface FileRouteTypes {
-  fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/csv' | '/helper' | '/mock' | '/sql' | '/template'
-  fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/csv' | '/helper' | '/mock' | '/sql' | '/template'
-  id: '__root__' | '/' | '/csv' | '/helper' | '/mock' | '/sql' | '/template'
-  fileRoutesById: FileRoutesById
-}
-
-export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  CsvRoute: typeof CsvRoute
-  HelperRoute: typeof HelperRoute
-  MockRoute: typeof MockRoute
-  SqlRoute: typeof SqlRoute
-  TemplateRoute: typeof TemplateRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CsvRoute: CsvRoute,
+  DocsRoute: DocsRoute,
   HelperRoute: HelperRoute,
   MockRoute: MockRoute,
   SqlRoute: SqlRoute,
   TemplateRoute: TemplateRoute,
 }
-
-export const routeTree = rootRoute
+export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-/* ROUTE_MANIFEST_START
-{
-  "routes": {
-    "__root__": {
-      "filePath": "__root.tsx",
-      "children": [
-        "/",
-        "/csv",
-        "/helper",
-        "/mock",
-        "/sql",
-        "/template"
-      ]
-    },
-    "/": {
-      "filePath": "index.tsx"
-    },
-    "/csv": {
-      "filePath": "csv.tsx"
-    },
-    "/helper": {
-      "filePath": "helper.tsx"
-    },
-    "/mock": {
-      "filePath": "mock.tsx"
-    },
-    "/sql": {
-      "filePath": "sql.tsx"
-    },
-    "/template": {
-      "filePath": "template.tsx"
-    }
-  }
-}
-ROUTE_MANIFEST_END */

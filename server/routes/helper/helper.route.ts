@@ -1,8 +1,6 @@
 import { createRoute, z } from '@hono/zod-openapi'
 import { HelperPathParameter } from '../../schema/helper.schema'
-
-const tags = ['Helper Routes']
-
+const tags = ['Reference']
 export const enumRoute = createRoute({
   method: 'get',
   path: '/helper/enum/{name}',
@@ -31,7 +29,6 @@ export const enumRoute = createRoute({
   },
   tags,
 })
-
 export const fakerMethodRoute = createRoute({
   method: 'get',
   path: '/helper/faker',
@@ -87,6 +84,5 @@ export const fakerMethodRoute = createRoute({
   },
   tags,
 })
-
 export type EnumRoute = typeof enumRoute
 export type FakerMethodRoute = typeof fakerMethodRoute

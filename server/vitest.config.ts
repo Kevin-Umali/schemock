@@ -1,6 +1,5 @@
 import { defineConfig } from 'vitest/config'
 import { resolve } from 'path'
-
 export default defineConfig({
   test: {
     environment: 'node',
@@ -10,7 +9,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@server': resolve(__dirname),
+      '@server': resolve(import.meta.dirname),
     },
   },
 })

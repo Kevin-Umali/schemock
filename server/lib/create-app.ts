@@ -2,7 +2,6 @@ import { OpenAPIHono } from '@hono/zod-openapi'
 import { HTTPException } from 'hono/http-exception'
 import { formatToReadableError } from '../utils/error-suggestion'
 import { applyMiddlewares } from '../middlewares'
-
 /**
  * Creates a new Hono router with OpenAPI support
  * @returns Configured OpenAPIHono instance
@@ -15,7 +14,7 @@ const createRouter = () => {
         return c.json(
           {
             success: false,
-            errors: result.error.errors.map((e) => ({
+            errors: result.error.issues.map((e) => ({
               path: e.path.join('.'),
               message: e.message,
               readableMessage: formatToReadableError(e),
@@ -27,17 +26,14 @@ const createRouter = () => {
     },
   })
 }
-
 /**
  * Creates a new Hono application with all middlewares and error handlers
  * @returns Configured Hono application
  */
 const createApp = () => {
   const app = createRouter()
-
   // Apply all global middlewares
   applyMiddlewares(app)
-
   app.notFound((c) => {
     return c.json(
       {
@@ -52,12 +48,9 @@ const createApp = () => {
     if (err instanceof HTTPException) {
       return err.getResponse()
     }
-
     console.error('Unhandled error:', err)
-    return c.json({ success: false, error: err.message }, 500)
+    return c.json({ success: false, error: 'An internal error occurred. Please try again.' }, 500)
   })
-
   return app
 }
-
 export { createApp, createRouter }

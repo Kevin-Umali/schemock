@@ -1,7 +1,12 @@
 export const FakerFunctions: {
   category: string
   description: string
-  items: { method: string; description: string; parameters: string; example: string }[]
+  items: {
+    method: string
+    description: string
+    parameters: string
+    example: string
+  }[]
 }[] = [
   {
     category: 'airline',
@@ -446,7 +451,8 @@ export const FakerFunctions: {
     items: [
       {
         method: 'datatype.number',
-        description: 'Returns a single random number between zero and the given max value or range with the specified precision.',
+        description:
+          'Returns a single random number between zero and the given max value or range with the specified precision.',
         parameters: `{
             min?: number;
             max?: number;
@@ -772,7 +778,8 @@ export const FakerFunctions: {
         method: 'finance.transactionDescription',
         description: 'Generates a random transaction description.',
         parameters: '',
-        example: "'invoice transaction at Kilback - Durgan using card ending with ***(...4316) for UAH 783.82 in account ***16168663'",
+        example:
+          "'invoice transaction at Kilback - Durgan using card ending with ***(...4316) for UAH 783.82 in account ***16168663'",
       },
     ],
   },
@@ -795,7 +802,7 @@ export const FakerFunctions: {
             refDate?: string | Date | number;
           }`,
         example: `// commit fe8c38a965d13d9794eb36918cb24cebe49a45c2
-    // Author: Marion Becker <Marion_Becker49@gmail.com>
+    // Author: Marion Becker <marion@example.test>
     // Date: Mon Nov 7 05:38:37 2022 -0600
     //
     //     generate open-source system`,
@@ -1393,7 +1400,8 @@ export const FakerFunctions: {
             min?: number;
             max?: number;
           }`,
-        example: "'Non architecto nam unde sint. Ex tenetur dolor facere optio aut consequatur. Ea laudantium reiciendis repellendus.'",
+        example:
+          "'Non architecto nam unde sint. Ex tenetur dolor facere optio aut consequatur. Ea laudantium reiciendis repellendus.'",
       },
       {
         method: 'lorem.paragraphs',
@@ -1403,7 +1411,8 @@ export const FakerFunctions: {
             max?: number;
             separator?: string;
           }`,
-        example: "'Beatae voluptatem dicta et assumenda fugit eaque quidem consequatur.\\nVoluptatibus quo pariatur est.'",
+        example:
+          "'Beatae voluptatem dicta et assumenda fugit eaque quidem consequatur.\\nVoluptatibus quo pariatur est.'",
       },
       {
         method: 'lorem.text',
@@ -1446,7 +1455,8 @@ export const FakerFunctions: {
     items: [
       {
         method: 'number.int',
-        description: 'Returns a single random integer between zero and the given max value or the given range. The bounds are inclusive.',
+        description:
+          'Returns a single random integer between zero and the given max value or the given range. The bounds are inclusive.',
         parameters: `{
             min?: number;
             max?: number;
@@ -1715,13 +1725,15 @@ export const FakerFunctions: {
       {
         method: 'string.alpha',
         description: 'Generates a string consisting of letters in the English alphabet.',
-        parameters: "options?: number | { length?: number | { min: number, max: number }, casing?: 'upper' | 'lower' | 'mixed', exclude?: Array<string> }",
+        parameters:
+          "options?: number | { length?: number | { min: number, max: number }, casing?: 'upper' | 'lower' | 'mixed', exclude?: Array<string> }",
         example: "{ length: 5, casing: 'upper' } // 'DTCIC'",
       },
       {
         method: 'string.alphanumeric',
         description: 'Generates a string consisting of alpha characters and digits.',
-        parameters: "options?: number | { length?: number | { min: number, max: number }, casing?: 'upper' | 'lower' | 'mixed', exclude?: Array<string> }",
+        parameters:
+          "options?: number | { length?: number | { min: number, max: number }, casing?: 'upper' | 'lower' | 'mixed', exclude?: Array<string> }",
         example: "{ length: 5, exclude: ['a'] } // 'x1Z7f'",
       },
       {
@@ -1739,13 +1751,15 @@ export const FakerFunctions: {
       {
         method: 'string.hexadecimal',
         description: 'Returns a hexadecimal string.',
-        parameters: "options?: { length?: number | { min: number, max: number }, casing?: 'upper' | 'lower' | 'mixed', prefix?: string }",
+        parameters:
+          "options?: { length?: number | { min: number, max: number }, casing?: 'upper' | 'lower' | 'mixed', prefix?: string }",
         example: "{ length: 10, casing: 'mixed', prefix: '0x' } // '0xAdE330a4D1'",
       },
       {
         method: 'string.numeric',
         description: 'Generates a given length string of digits.',
-        parameters: 'options?: number | { length?: number | { min: number, max: number }, allowLeadingZeros?: boolean, exclude?: Array<string> }',
+        parameters:
+          'options?: number | { length?: number | { min: number, max: number }, allowLeadingZeros?: boolean, exclude?: Array<string> }',
         example: "{ length: 6, exclude: ['0'] } // '943228'",
       },
       {
@@ -1841,7 +1855,8 @@ export const FakerFunctions: {
       {
         method: 'system.networkInterface',
         description: 'Returns a random network interface name.',
-        parameters: "options?: { interfaceType?: 'en' | 'wl' | 'ww', interfaceSchema?: 'index' | 'slot' | 'mac' | 'pci' }",
+        parameters:
+          "options?: { interfaceType?: 'en' | 'wl' | 'ww', interfaceSchema?: 'index' | 'slot' | 'mac' | 'pci' }",
         example: "{ interfaceType: 'wl' } // 'wlo1'",
       },
       {
