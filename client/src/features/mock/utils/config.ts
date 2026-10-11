@@ -1,8 +1,6 @@
-import { MOCK_DEFAULTS, MOCK_PAGE_SIZES } from '../constants/config'
+import { MOCK_DEFAULTS } from '../constants/config'
 import { parseSchema } from '@/utils/schema'
 import { peopleSchema } from '@/constants/sample-schemas'
-import type { SelectOption } from '@/types/ui'
-import { localeLabel } from '@/utils/locale'
 import type { MockConfiguration } from '../types/config'
 
 export const readMockConfiguration = (search: string): MockConfiguration => {
@@ -23,28 +21,3 @@ export const readMockConfiguration = (search: string): MockConfiguration => {
     sort: query.get('sort') || MOCK_DEFAULTS.sort,
   }
 }
-
-export const createMockShareUrl = (href: string, configuration: MockConfiguration): string => {
-  const url = new URL(href)
-  url.search = new URLSearchParams({
-    s: JSON.stringify(configuration.schema),
-    c: String(configuration.count),
-    l: configuration.locale,
-    p: String(configuration.page),
-    lim: String(configuration.limit),
-    sort: configuration.sort,
-  }).toString()
-  return url.href
-}
-
-export const getMockLocaleOptions = (locales: string[]): SelectOption[] =>
-  locales.map((locale) => ({
-    value: locale,
-    label: localeLabel(locale),
-  }))
-
-export const getMockPageSizeOptions = (): SelectOption[] =>
-  MOCK_PAGE_SIZES.map((size) => ({
-    value: String(size),
-    label: String(size),
-  }))

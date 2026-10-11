@@ -2,7 +2,6 @@ import { positiveInteger } from '../utils/env'
 // Configuration settings for the application
 import packageJSON from '../../package.json' with { type: 'json' }
 export const config = {
-  apiKey: process.env.SCHEMOCK_API_KEY || undefined,
   app: {
     name: 'Schemock API',
     version: packageJSON.version,
@@ -23,9 +22,9 @@ export const config = {
       process.env.CORS_ORIGINS?.split(',')
         .map((origin) => origin.trim())
         .filter(Boolean) || '*',
-    allowHeaders: ['Authorization', 'Content-Type', 'X-Flatten-Objects', 'X-Format-Objects'],
-    allowMethods: ['POST', 'GET', 'OPTIONS'],
-    exposeHeaders: ['Content-Length', 'X-Kuma-Revision', 'Retry-After', 'RateLimit', 'RateLimit-Policy'],
+    allowHeaders: [],
+    allowMethods: ['POST', 'GET', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'],
+    exposeHeaders: ['*'],
     maxAge: 600,
     credentials: false,
   },

@@ -8,6 +8,10 @@ export const createCache = (ttl: CacheTTL, options?: CacheOptions): MiddlewareHa
   const cacheControl = options?.cacheControl ?? `public, max-age=${seconds}`
   const vary = options?.vary ?? []
   return async (c, next) => {
+    if (c.req.path.startsWith('/api/v1/mock/run/')) {
+      c.header('Cache-Control', 'no-store')
+      return next()
+    }
     if (c.req.method !== 'GET') return next()
     const key = generateCacheKey(c, vary)
     const now = Date.now()

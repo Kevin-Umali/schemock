@@ -22,7 +22,7 @@ export const enhancedLogger = ({
       level: severity,
       requestId,
       method: c.req.method,
-      path: c.req.path,
+      path: c.req.path.replace(/(\/api\/v1\/mock\/run\/)[^/]+/, '$1[definition]'),
       status,
       duration: Math.round(performance.now() - start),
     }

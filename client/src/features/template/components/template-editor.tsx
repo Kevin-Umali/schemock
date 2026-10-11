@@ -29,13 +29,13 @@ const TemplateEditor: React.FC<EditorProps> = ({ initialContent = '', onChange, 
     })
   }
   return (
-    <div className='grid gap-3'>
-      <Field name='template-text' className='gap-2'>
+    <div className='flex flex-col gap-3 xl:h-full xl:min-h-0'>
+      <Field name='template-text' className='gap-2 xl:min-h-0 xl:flex-1'>
         <FieldLabel htmlFor='template-text'>Template text</FieldLabel>
         <Textarea
           id='template-text'
           ref={input}
-          className='min-h-64 font-mono leading-7'
+          className='min-h-64 font-mono leading-7 xl:min-h-0 xl:flex-1 xl:resize-none'
           value={text}
           spellCheck={false}
           placeholder='Hello {{person.fullName}}…'
@@ -45,7 +45,7 @@ const TemplateEditor: React.FC<EditorProps> = ({ initialContent = '', onChange, 
           }}
         />
       </Field>
-      <div className='grid gap-2 sm:grid-cols-[minmax(0,1fr)_12rem] sm:items-center'>
+      <div className='grid shrink-0 gap-2 sm:grid-cols-[minmax(0,1fr)_12rem] sm:items-center'>
         <SearchSelect
           key={insertion}
           value=''

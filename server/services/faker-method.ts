@@ -7,7 +7,7 @@ import { allowedFakerMethods, localeMap } from '../constant'
 export const createFaker = (locale = 'en'): Faker => {
   return new Faker({ locale: [localeMap[locale] || en, en, base] })
 }
-export const generateValue = (expression: string, faker: Faker): unknown => {
+export const generateValue = (expression: string, faker: Faker, referenceDate?: Date): unknown => {
   const match = /^([a-zA-Z][a-zA-Z0-9]*\.[a-zA-Z][a-zA-Z0-9]*)(?:\(([\s\S]*)\))?$/.exec(expression.trim())
   if (!match) {
     if (!expression.includes('.')) return expression
@@ -53,7 +53,7 @@ export const generateValue = (expression: string, faker: Faker): unknown => {
       if (!Number.isFinite(date.getTime())) throw new Error('Invalid date arguments.')
       return date
     }
-    if (!args.length) return new Date()
+    if (!args.length) return new Date(referenceDate ?? Date.now())
     throw new Error('Use a date string, timestamp, or numeric date parts.')
   }
   const [category, name] = method.split('.')

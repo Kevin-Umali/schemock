@@ -8,6 +8,7 @@ COPY client/package.json client/bun.lock ./
 RUN bun install --frozen-lockfile
 
 COPY client/ ./
+COPY shared/ /app/shared/
 
 ARG VITE_API_BASE_URL=/api/v1
 ENV VITE_API_BASE_URL=${VITE_API_BASE_URL}

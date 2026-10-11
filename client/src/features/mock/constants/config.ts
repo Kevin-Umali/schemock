@@ -5,5 +5,3 @@ export const MOCK_DEFAULTS = {
   page: 1,
   sort: '',
 } as const
-
-export const MOCK_PAGE_SIZES = [5, 10, 15, 20] as const
