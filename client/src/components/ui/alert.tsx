@@ -8,7 +8,8 @@ export const Alert: React.FC<AlertProps> = ({ className, variant = 'default', ..
     data-slot='alert'
     className={cn(
       'relative grid w-full gap-1.5 rounded-lg border border-border bg-card p-4 text-sm text-card-foreground [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground [&>svg~*]:pl-7',
-      variant === 'destructive' && 'border-destructive/50 text-destructive [&>svg]:text-destructive',
+      variant === 'destructive' &&
+        'border-destructive/50 text-destructive [&>svg]:text-destructive [&_[data-slot=alert-description]]:text-destructive',
       className,
     )}
     {...props}

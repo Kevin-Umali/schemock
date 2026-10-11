@@ -3,17 +3,21 @@ import { HTTPException } from 'hono/http-exception'
 import { assertSchemaLimits } from './schema-limits'
 import { createFaker, generateValue } from './faker-method'
 import { formatObjectToParagraph } from './template-formatter'
+import type { GenerationContext } from '../types/generation'
 export type GenerateSchema = Record<string, unknown>
 export interface BaseSchema {
   count?: number
   items?: GenerateSchema | string
 }
-const createGenerator = (locale: string) => {
+const createGenerator = (locale: string, context?: GenerationContext) => {
   const faker = createFaker(locale)
+  if (context?.seed !== undefined) faker.seed(context.seed)
+  const referenceDate = context?.referenceDate ? new Date(context.referenceDate) : undefined
+  if (referenceDate) faker.setDefaultRefDate(referenceDate)
   const generate = (value: unknown): unknown => {
     if (typeof value === 'string') {
       try {
-        value = generateValue(value, faker)
+        value = generateValue(value, faker, referenceDate)
       } catch (error) {
         throw new HTTPException(422, { message: (error as Error).message })
       }
@@ -36,9 +40,10 @@ export const generateFakeRecords = (
   schema: GenerateSchema,
   count: number,
   locale = 'en',
+  context?: GenerationContext,
 ): Record<string, unknown>[] => {
   assertSchemaLimits(schema, count)
-  const generate = createGenerator(locale)
+  const generate = createGenerator(locale, context)
   let responseSize = 0
   return Array.from({ length: count }, () => {
     const record = Object.fromEntries(Object.entries(schema).map(([key, value]) => [key, generate(value)]))

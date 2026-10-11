@@ -95,7 +95,14 @@ export const FieldInspector: React.FC<FieldInspectorProps> = ({
           >
             {name}
           </h3>
-          <p className='mt-1 break-all font-mono text-xs leading-5 text-muted-foreground'>{formatFieldPath(path)}</p>
+          {path.length > 3 ? (
+            <details className='mt-1 text-xs text-muted-foreground'>
+              <summary className='cursor-pointer py-1'>Full field path · {path.length} levels</summary>
+              <p className='mt-1 break-all font-mono leading-5'>{formatFieldPath(path)}</p>
+            </details>
+          ) : (
+            <p className='mt-1 break-all font-mono text-xs leading-5 text-muted-foreground'>{formatFieldPath(path)}</p>
+          )}
         </div>
         {parent && (
           <div className='flex shrink-0 gap-1' aria-label={`Actions for ${name}`}>
@@ -160,7 +167,7 @@ export const FieldInspector: React.FC<FieldInspectorProps> = ({
           <ToggleGroup
             aria-labelledby={`${id}-kind-label`}
             value={[kind]}
-            className='grid w-full grid-cols-2 gap-2 sm:grid-cols-4'
+            className='grid w-full grid-cols-[repeat(auto-fit,minmax(5rem,1fr))] gap-2'
             onValueChange={(values) => {
               const next = values[0] as FieldSourceKind | undefined
               if (next && next !== kind) onChange(createFieldValue(next), `Changed ${name} from ${selectedKind.label}.`)

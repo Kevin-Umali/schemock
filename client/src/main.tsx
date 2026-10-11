@@ -17,6 +17,7 @@ const queryClient = new QueryClient({
 })
 const router = createRouter({
   routeTree,
+  scrollToTopSelectors: ['#main-content'],
   defaultPendingComponent: () => (
     <div className='p-2 text-2xl'>
       <Spinner />

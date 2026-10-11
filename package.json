@@ -18,7 +18,7 @@
     "client:preview": "cd client && bun run preview",
     "dev:all": "concurrently --kill-others \"bun run dev\" \"bun run client:dev\"",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint server",
+    "lint": "eslint server shared",
     "check": "bun run lint && bun run typecheck && bun run test && cd client && bun run lint && bun run build"
   },
   "dependencies": {

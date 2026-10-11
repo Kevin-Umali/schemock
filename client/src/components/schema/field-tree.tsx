@@ -33,7 +33,7 @@ export const FieldTree: React.FC<FieldTreeProps> = ({
       const kind = FIELD_KINDS.find((item) => item.value === node.kind) ?? FIELD_KINDS[0]
       const Icon = kind.icon
       const hasChildren = node.children.length > 0
-      const open = expandedPaths[key] ?? depth < 1
+      const open = expandedPaths[key] ?? false
       const invalid = invalidPaths.has(key)
       return (
         <SidebarMenuItem key={key}>
@@ -45,11 +45,11 @@ export const FieldTree: React.FC<FieldTreeProps> = ({
                 aria-label={`Edit ${formatFieldPath(node.path)}, ${kind.label}${invalid ? ', needs attention' : ''}`}
                 title={formatFieldPath(node.path)}
                 onClick={() => onSelect(node.path)}
-                className='h-auto min-h-11 min-w-0 flex-1 gap-2 py-2 data-[active=true]:bg-secondary data-[active=true]:text-foreground'
+                className='h-auto min-h-11 min-w-0 flex-1 gap-2 py-2 md:h-auto data-active:bg-accent data-active:text-accent-foreground [&>span:last-child]:overflow-visible [&>span:last-child]:whitespace-normal'
               >
                 <Icon aria-hidden='true' className='size-4 shrink-0' />
                 <span className='min-w-0 flex-1'>
-                  <span className='block truncate font-mono text-sm font-medium'>{node.name}</span>
+                  <span className='block whitespace-normal break-all font-mono text-sm font-medium'>{node.name}</span>
                   <span className='mt-0.5 block text-xs font-normal text-muted-foreground'>
                     {kind.label}
                     {node.kind === 'object'
@@ -72,9 +72,7 @@ export const FieldTree: React.FC<FieldTreeProps> = ({
               )}
             </div>
             {hasChildren && (
-              <CollapsibleContent
-                className={depth < 2 ? 'ms-4 border-s border-border ps-1' : 'border-s border-border ps-1'}
-              >
+              <CollapsibleContent className={depth < 2 ? 'ms-4 border-s border-border ps-1' : ''}>
                 <FieldTree
                   nodes={node.children}
                   selectedPath={selectedPath}

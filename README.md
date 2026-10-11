@@ -13,4 +13,10 @@ Open [Schemock](http://localhost:5173), the [user guide](http://localhost:5173/d
 
 Generated emails always use the reserved `example.test` domain.
 
-To require a bearer token for generation and mock API requests, set `SCHEMOCK_API_KEY` in the server environment. Send it in the `Authorization: Bearer …` header when calling those endpoints. Leave the variable unset to keep them public. Missing or invalid credentials return `401 Unauthorized`.
+All endpoints are public and require no API key.
+
+The Mock API builder creates callable GET, POST, PUT, PATCH, and DELETE endpoints. Configure a custom response or a CRUD resource, then copy the API base URL and append your endpoint path. Scenarios can select responses by query parameters, request headers, or JSON body fields.
+
+Definitions are compressed into the URL. Nothing is saved to a database or browser storage, and no mock request history is retained by the server. CRUD writes simulate responses; later reads return the original seeded dataset. Copy a new URL after editing the configuration or regenerating data. Shared links have no expiry while the host supports their definition version; generator upgrades can change the generated values.
+
+Mock definitions allow up to 20 endpoints/resources, 10 scenarios per endpoint, 6 KiB of encoded configuration, and 64 KiB when decompressed. The existing `POST /api/v1/mock/pagination` endpoint remains available.

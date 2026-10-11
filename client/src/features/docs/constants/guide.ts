@@ -29,21 +29,20 @@ export const MOCK_CURL_EXAMPLE = `curl -X POST '${absoluteApiUrl('/mock/paginati
 
 export const GUIDE_STEPS: GuideStep[] = [
   {
-    title: 'Start with a template',
-    description: 'Choose a quick-start schema or import a JSON example to get useful fields in place.',
+    title: 'Start from an example',
+    description: 'Choose a schema template or import a JSON object to create fields from its values.',
   },
   {
-    title: 'Shape the fields',
-    description:
-      'Choose a field in the outline, then pick Faker, Object, Array, or Fixed. Open child fields or Each item to edit nested data.',
+    title: 'Set up the fields',
+    description: 'Choose Faker, Fixed, Object, or Array for each field. Add child fields to shape nested data.',
   },
   {
-    title: 'Choose output settings',
-    description: 'Set record count and locale. CSV and SQL pages also include format-specific options.',
+    title: 'Generate a preview',
+    description: 'Choose a record count and locale, then review the output. CSV and SQL have extra format options.',
   },
   {
-    title: 'Generate and use it',
-    description: 'Preview, search, copy, or download the result. Saved schemas stay in this browser.',
+    title: 'Use the result',
+    description: 'Search, copy, or download records. Saved schemas stay in this browser.',
   },
 ]
 
