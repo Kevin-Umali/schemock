@@ -39,7 +39,7 @@ const WorkspaceFrame: React.FC = () => {
       <a href='#main-content' className='fixed -top-20 left-4 z-50 rounded-md bg-card px-4 py-3 focus:top-2'>
         Skip to content
       </a>
-      <Sidebar collapsible='icon' variant='inset' aria-label='Workspace tools'>
+      <Sidebar collapsible='icon' aria-label='Workspace tools'>
         <SidebarHeader className='px-3 pb-7 pt-5 group-data-[collapsible=icon]:px-2'>
           <Link
             to='/'
@@ -112,8 +112,8 @@ const WorkspaceFrame: React.FC = () => {
         </SidebarFooter>
         <SidebarRail />
       </Sidebar>
-      <SidebarInset className='min-w-0 bg-background shadow-none!'>
-        <header className='flex min-h-16 items-center justify-between gap-3 border-b px-4 md:px-8'>
+      <SidebarInset className='min-h-0 min-w-0 overflow-hidden bg-background shadow-none!'>
+        <header className='flex h-16 shrink-0 items-center justify-between gap-3 border-b bg-card px-4 md:px-6'>
           <div className='flex min-w-0 items-center gap-3'>
             <SidebarTrigger />
             <Breadcrumb>
@@ -131,7 +131,7 @@ const WorkspaceFrame: React.FC = () => {
             Local workspace
           </span>
         </header>
-        <main id='main-content' tabIndex={-1} className='min-w-0 outline-none'>
+        <main id='main-content' tabIndex={-1} className='min-h-0 min-w-0 flex-1 overflow-auto outline-none'>
           <Outlet />
         </main>
       </SidebarInset>
@@ -140,7 +140,7 @@ const WorkspaceFrame: React.FC = () => {
 }
 
 export const AppShell: React.FC = () => (
-  <SidebarProvider>
+  <SidebarProvider className='h-dvh min-h-0 overflow-hidden'>
     <WorkspaceFrame />
   </SidebarProvider>
 )

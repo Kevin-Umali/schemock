@@ -1,7 +1,6 @@
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 import { SearchSelect } from '@/components/ui/search-select'
-import { Field } from '@/components/ui/field'
 import { Empty, EmptyDescription, EmptyTitle } from '@/components/ui/empty'
 import { ALL_METHOD_CATEGORIES } from '../constants/config'
 import { filterMethodCategories, getMethodCategoryOptions } from '../utils/filter-methods'
@@ -20,7 +19,7 @@ export const MethodReference: React.FC = () => {
     <div className='mx-auto w-full max-w-[1440px] px-4 py-8 sm:px-8 lg:px-10'>
       <div className='flex items-start justify-between gap-6 max-[720px]:flex-col'>
         <div>
-          <h1 className='text-3xl font-semibold tracking-tight sm:text-4xl'>Find the right kind of data.</h1>
+          <h1 className='text-3xl font-semibold tracking-tight sm:text-4xl'>Faker reference</h1>
           <p className='mt-2 max-w-2xl text-sm leading-6 text-muted-foreground'>
             Browse the generators available in this version of Schemock. Copy a method into your schema or template.
           </p>
@@ -34,27 +33,31 @@ export const MethodReference: React.FC = () => {
           Faker documentation <ArrowUpRight size={14} />
         </a>
       </div>
-      <div className='my-8 flex flex-wrap gap-3'>
-        <Field className='relative min-w-48 flex-1'>
-          <Search className='absolute left-3 top-3 h-4 w-4 text-muted-foreground' />
-          <Input
-            aria-label='Search generators'
-            placeholder='Search by method or description…'
-            className='pl-9'
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
+      <div className='sticky top-0 z-20 -mx-4 mt-6 border-b bg-background px-4 py-3 sm:-mx-8 sm:px-8 lg:-mx-10 lg:px-10'>
+        <div className='flex flex-wrap gap-3'>
+          <InputGroup className='min-w-48 flex-1'>
+            <InputGroupAddon>
+              <Search />
+            </InputGroupAddon>
+            <InputGroupInput
+              aria-label='Search generators'
+              placeholder='Search by method or description…'
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+            />
+          </InputGroup>
+          <SearchSelect
+            className='sm:w-64'
+            label='Generator category'
+            value={category}
+            options={getMethodCategoryOptions(fakerMethods)}
+            onChange={setCategory}
           />
-        </Field>
-        <SearchSelect
-          label='Generator category'
-          value={category}
-          options={getMethodCategoryOptions(fakerMethods)}
-          onChange={setCategory}
-        />
+        </div>
+        <p className='mt-2 text-xs text-muted-foreground'>
+          {groups.reduce((total, group) => total + group.items.length, 0)} matching methods
+        </p>
       </div>
-      <p className='mb-4 text-xs text-muted-foreground'>
-        {groups.reduce((total, group) => total + group.items.length, 0)} matching methods
-      </p>
       {groups.length ? (
         groups.map((group) => (
           <section
@@ -69,7 +72,7 @@ export const MethodReference: React.FC = () => {
               {group.items.map((item) => (
                 <div key={item.method} className='flex items-start justify-between gap-4 px-4 py-5 sm:px-5'>
                   <div className='min-w-0'>
-                    <code className='text-sm font-medium'>{item.method}</code>
+                    <code className='break-words text-sm font-medium'>{item.method}</code>
                     <p className='mt-2 text-xs leading-relaxed text-muted-foreground'>{item.description}</p>
                     <details className='mt-3 text-xs text-muted-foreground'>
                       <summary>Parameters and example</summary>

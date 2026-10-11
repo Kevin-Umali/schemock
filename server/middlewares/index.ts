@@ -11,7 +11,6 @@ import { assertSchemaLimits } from '../services/schema-limits'
 import { enhancedLogger } from './custom-logger'
 import { REQUEST_LIMITS } from '../constant/security'
 import { config } from '../config'
-import { apiKeyAuth } from './api-key.middleware'
 /**
  * Applies all global middlewares to the app
  * @param app - Hono app instance
@@ -53,8 +52,6 @@ export const applyMiddlewares = (app: OpenAPIHono): OpenAPIHono => {
         }),
     ),
   )
-  // Authenticate protected generation requests before charging write quotas.
-  app.use('/api/*', apiKeyAuth)
   app.use('/api/*', generationRateLimit)
   app.use(
     '/api/*',
@@ -65,6 +62,7 @@ export const applyMiddlewares = (app: OpenAPIHono): OpenAPIHono => {
   )
   // Bound raw schemas before recursive Zod validation and generation.
   app.use('/api/*', async (c, next) => {
+    if (c.req.path.startsWith('/api/v1/mock/run/')) return next()
     if (c.req.method === 'POST' && JSON_CONTENT_TYPE.test(c.req.header('Content-Type') ?? '')) {
       let body: unknown
       try {

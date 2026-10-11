@@ -4,16 +4,21 @@ import { useId, useRef } from 'react'
 import { useHorizontalOverflow } from '@/hooks/use-horizontal-overflow'
 import { ArrowLeftRight } from 'lucide-react'
 
-export const Table: React.FC<React.ComponentProps<'table'>> = ({ className, ...props }) => {
+interface TableProps extends React.ComponentProps<'table'> {
+  containerClassName?: string
+  viewportClassName?: string
+}
+
+export const Table: React.FC<TableProps> = ({ className, containerClassName, viewportClassName, ...props }) => {
   const viewport = useRef<HTMLDivElement>(null)
   const hintId = useId()
   const overflowing = useHorizontalOverflow(viewport)
   return (
-    <div className='min-w-0'>
+    <div className={cn('flex min-h-0 min-w-0 flex-col', containerClassName)}>
       {overflowing && (
         <p
           id={hintId}
-          className='flex items-center gap-2 border-b bg-muted/40 px-4 py-2.5 text-xs text-muted-foreground'
+          className='flex shrink-0 items-center gap-2 border-b bg-muted/40 px-4 py-2.5 text-xs text-muted-foreground'
         >
           <ArrowLeftRight className='size-3.5 shrink-0' aria-hidden='true' />
           Scroll sideways to see more columns.
@@ -22,7 +27,7 @@ export const Table: React.FC<React.ComponentProps<'table'>> = ({ className, ...p
       <div
         ref={viewport}
         data-slot='table-container'
-        className='relative w-full overflow-x-auto'
+        className={cn('relative min-h-0 w-full flex-1 overflow-auto', viewportClassName)}
         role={overflowing ? 'region' : undefined}
         aria-label={overflowing ? 'Scrollable table' : undefined}
         aria-describedby={overflowing ? hintId : undefined}

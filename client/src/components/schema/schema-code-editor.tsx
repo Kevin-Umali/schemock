@@ -60,8 +60,8 @@ export const SchemaCodeEditor: React.FC<SchemaCodeEditorProps> = ({ value, metho
   )
   const issue = formatError || check.issues[0]?.message
   return (
-    <div className=''>
-      <div className='mb-3 flex flex-wrap items-center justify-between gap-2'>
+    <div className='flex min-h-96 flex-col xl:h-full xl:min-h-0'>
+      <div className='mb-3 flex shrink-0 flex-wrap items-center justify-between gap-2'>
         <span className='flex items-center gap-1.5 text-xs text-foreground' role='status'>
           {issue ? <CircleAlert size={14} /> : <CheckCircle2 size={14} />}
           {issue ? `${check.issues.length || 1} issue${check.issues.length > 1 ? 's' : ''}` : 'Valid schema'}
@@ -87,12 +87,11 @@ export const SchemaCodeEditor: React.FC<SchemaCodeEditorProps> = ({ value, metho
         theme='none'
         ref={editor}
         value={value}
-        minHeight='340px'
-        maxHeight='600px'
+        height='100%'
         extensions={extensions}
         basicSetup={SCHEMA_EDITOR_SETUP}
         onChange={change}
-        className='overflow-hidden rounded-md border text-xs [&_.cm-editor]:bg-card [&_.cm-editor]:text-foreground [&_.cm-editor.cm-focused]:outline-ring [&_.cm-scroller]:font-mono [&_.cm-scroller]:leading-7 [&_.cm-gutters]:border-border [&_.cm-gutters]:bg-muted [&_.cm-gutters]:text-muted-foreground [&_.cm-content]:py-2 [&_.cm-activeLine]:bg-muted/40! [&_.cm-activeLineGutter]:bg-muted! [&_.cm-cursor]:border-l-foreground! [&_.cm-selectionBackground]:bg-muted! [&_.cm-tooltip-autocomplete_li[aria-selected=true]]:bg-primary! [&_.cm-tooltip-autocomplete_li[aria-selected=true]]:text-primary-foreground! [&_.cm-tooltip]:border-border [&_.cm-tooltip]:bg-popover [&_.cm-tooltip]:text-popover-foreground [&_.cm-tooltip-autocomplete]:max-w-[min(30rem,calc(100vw-3rem))]'
+        className='min-h-0 flex-1 overflow-hidden rounded-md border text-xs [&_.cm-editor]:bg-card [&_.cm-editor]:text-foreground [&_.cm-editor.cm-focused]:outline-ring [&_.cm-scroller]:font-mono [&_.cm-scroller]:leading-7 [&_.cm-gutters]:border-border [&_.cm-gutters]:bg-muted [&_.cm-gutters]:text-muted-foreground [&_.cm-content]:py-2 [&_.cm-activeLine]:bg-muted/40! [&_.cm-activeLineGutter]:bg-muted! [&_.cm-cursor]:border-l-foreground! [&_.cm-selectionBackground]:bg-muted! [&_.cm-tooltip-autocomplete_li[aria-selected=true]]:bg-primary! [&_.cm-tooltip-autocomplete_li[aria-selected=true]]:text-primary-foreground! [&_.cm-tooltip]:border-border [&_.cm-tooltip]:bg-popover [&_.cm-tooltip]:text-popover-foreground [&_.cm-tooltip-autocomplete]:max-w-[min(30rem,calc(100vw-3rem))]'
       />
       {issue && (
         <p className='mt-3 rounded-md border bg-muted p-3 text-xs leading-relaxed' role='alert'>
@@ -101,7 +100,7 @@ export const SchemaCodeEditor: React.FC<SchemaCodeEditorProps> = ({ value, metho
       )}
       <p
         id='schema-editor-help'
-        className='mt-4 text-xs leading-relaxed text-muted-foreground [&_code]:font-mono [&_code]:text-[11px]'
+        className='mt-4 shrink-0 text-xs leading-relaxed text-muted-foreground [&_code]:font-mono [&_code]:text-[11px]'
       >
         Type inside a value to see Faker suggestions. Ctrl/Cmd + Space opens suggestions. Arrays use{' '}
         <code>{'{ "items": "lorem.word", "count": 3 }'}</code>.

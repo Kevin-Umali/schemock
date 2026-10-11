@@ -1,12 +1,16 @@
-import type { Schema } from '@/types/schema'
-export interface MockRequest {
-  schema: Schema
-  count: number
-  locale: string
+export interface MockTestRequest {
+  url: string
+  method: string
+  path: string
+  body: string
+  headers: Record<string, string>
 }
-export interface PaginatedData {
-  data: Record<string, unknown>[]
-  page: number
-  limit: number
-  total: number
+
+export interface MockTestResult {
+  method: string
+  path: string
+  status: number
+  duration: number
+  body: string
+  headers: Record<string, string>
 }
